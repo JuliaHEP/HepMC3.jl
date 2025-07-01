@@ -1,34 +1,35 @@
 module_name         = "HepMC3"
 export_jl_fname     = "HepMC3-export.jl"
 module_jl_fname     = "HepMC3-generated.jl"
-out_cpp_fname       = "cpp/jlHepMC3.cxx"
-out_h_fname         = "cpp/jlHepMC3.h"
+out_cpp_fname       = "jlHepMC3.cxx"
+out_h_fname         = "jlHepMC3.h"
 out_cxx_dir         = "cpp"
 out_jl_dir          = "jl"
 
 clang_opts          = ["-v"]
 
-include_dirs        = [
-                        "./cpp", 
-                        "@HEPMC3_INCLUDE_DIR@",
-                        "@Julia_INCLUDE_DIRS@",  
-                        "@JlCxx_DIR@/../../../include"]
+include_dirs        = [ "./cpp", 
+                       "@HepMC3_INCLUDE_DIR@",
+                       "@Julia_INCLUDE_DIR@",  
+                       "@JlCxx_INCLUDE_DIR@"]
 
-input = ["HepMC3/FourVector.h",
-         "HepMC3/GenEvent.h",
-         "HepMC3/GenVertex.h",
-         "HepMC3/GenParticle.h",
-         "HepMC3/Data/GenParticleData.h",
-         "HepMC3/Attribute.h",
-         "HepMC3/GenHeavyIon.h",
-         "HepMC3/GenPdfInfo.h",
-         "HepMC3/GenCrossSection.h",
-#        "HepMC3/Print.h",
-#        "HepMC3/Selector.h",
-]
+input               = [ "HepMC3Wrap.h",
+                       "HepMC3/FourVector.h",
+                       "HepMC3/GenEvent.h",
+                       "HepMC3/GenVertex.h",
+                       "HepMC3/GenParticle.h",
+                       "HepMC3/Data/GenParticleData.h",
+                       "HepMC3/Attribute.h",
+                       "HepMC3/GenHeavyIon.h",
+                       "HepMC3/GenPdfInfo.h",
+                       "HepMC3/GenCrossSection.h"
+                     ]
 
+extra_headers       = [ ]
+vetoed_finalizer_classes = []
 export              = "all"
 veto_list           = "HepMC3-veto.h"
-cxx-std             = "c++20"
+cxx-std             = "c++17"
 inheritances        = [ ]
 export_blacklist    = [ ]
+cxxwrap_version     = "@CxxWrap_VERSION@"
