@@ -16,17 +16,17 @@ include_dirs        = [ "./cpp",
 input               = [ "HepMC3Wrap.h",
                        "HepMC3/FourVector.h",
                        "HepMC3/GenEvent.h",
-                       "HepMC3/GenVertex.h",
+                       "HepMC3/GenVertex.h", 
                        "HepMC3/GenParticle.h",
-                       "HepMC3/Data/GenParticleData.h",
                        "HepMC3/Attribute.h",
                        "HepMC3/GenHeavyIon.h",
                        "HepMC3/GenPdfInfo.h",
-                       "HepMC3/GenCrossSection.h"
+                       "HepMC3/GenCrossSection.h",
+                       "HepMC3/Units.h"
                      ]
 
-extra_headers       = [ ]
-vetoed_finalizer_classes = []
+extra_headers       = [ "memory", "vector", "string" ]
+vetoed_finalizer_classes = ["HepMC3!GenEvent", "HepMC3!GenParticle", "HepMC3!GenVertex"]
 export              = "all"
 veto_list           = "HepMC3-veto.h"
 cxx-std             = "c++17"

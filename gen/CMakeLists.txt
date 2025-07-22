@@ -14,19 +14,22 @@ message(STATUS "Found JlCxx at ${JlCxx_location}")
 #---Find HepMC3---------------------------------------------------------------------
 find_package(HepMC3 REQUIRED)
 find_package(ZLIB REQUIRED)
+
 file(REAL_PATH ${CMAKE_SOURCE_DIR}/../gen SOURCE_DIR)
 file(GLOB GEN_SOURCES CONFIGURE_DEPENDS  ${SOURCE_DIR}/cpp/Jl*.cxx)
+
+# Build library with BOTH manual wrapper and generated bindings
 add_library(HepMC3Wrap SHARED 
     ${SOURCE_DIR}/cpp/HepMC3Wrap.cxx 
-    ${SOURCE_DIR}/cpp/HepMC3WrapImpl.cpp  # Add this line
-    ${SOURCE_DIR}/cpp/jlHepMC3.cxx 
+    ${SOURCE_DIR}/cpp/HepMC3WrapImpl.cpp
+    ${SOURCE_DIR}/cpp/jlHepMC3.cxx  # This is the WrapIt-generated file
     ${GEN_SOURCES})
 
 target_include_directories(HepMC3Wrap PRIVATE ${SOURCE_DIR})
 
-#Comment this out 
-target_compile_definitions(HepMC3Wrap PRIVATE HEPMC3_USE_COMPRESSION=1)
-
+if(HEPMC3_USE_COMPRESSION)
+    target_compile_definitions(HepMC3Wrap PRIVATE HEPMC3_USE_COMPRESSION=1)
+endif()
 
 target_link_libraries(HepMC3Wrap 
     JlCxx::cxxwrap_julia 
@@ -38,7 +41,3 @@ install(TARGETS HepMC3Wrap
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION lib)
-
-
-        
-

@@ -1,0 +1,9 @@
+name = "HepMC3"
+uuid = "c417cfb8-6006-4e9f-8eac-22c8d6053590"
+authors = ["Your Name <your.email@example.com>"]
+version = "0.1.0"
+
+[deps]
+CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+HepMC3_jll = "23e19c7c-c27f-50b8-aa2e-52b0b8cac588"
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
