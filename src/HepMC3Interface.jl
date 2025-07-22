@@ -175,3 +175,100 @@ function attach_vertex_to_event(event, vertex_ptr)
     event_ptr = event.cpp_object
     return HepMC3.add_shared_vertex_to_event(event_ptr, vertex_ptr)
 end
+
+
+
+
+
+# Add to HepMC3Interface.jl
+
+export set_vertex_status!, shift_position!, add_pdf_info!, add_cross_section!, add_heavy_ion!
+export create_particle_attribute, add_particle_attribute!, remove_particle!
+
+"""
+    set_vertex_status!(vertex_ptr, status)
+Set the status of a vertex.
+"""
+function set_vertex_status!(vertex_ptr, status::Int)
+    HepMC3.set_vertex_status(vertex_ptr, status)
+end
+
+"""
+    shift_position!(event, dx, dy, dz, dt)
+Shift the position of all vertices in the event.
+"""
+function shift_position!(event, dx::Float64, dy::Float64, dz::Float64, dt::Float64)
+    shift_vector = FourVector(dx, dy, dz, dt)
+    HepMC3.shift_event_position(event.cpp_object, shift_vector.cpp_object)
+end
+
+"""
+    add_pdf_info!(event, id1, id2, x1, x2, q, pdf1, pdf2, pdf_set_id1, pdf_set_id2)
+Add PDF information to the event.
+"""
+function add_pdf_info!(event, id1::Int, id2::Int, x1::Float64, x2::Float64, q::Float64, 
+                      pdf1::Float64, pdf2::Float64, pdf_set_id1::Int, pdf_set_id2::Int)
+    pdf_info = HepMC3.create_gen_pdf_info()
+    HepMC3.set_pdf_info(pdf_info, id1, id2, x1, x2, q, pdf1, pdf2, pdf_set_id1, pdf_set_id2)
+    HepMC3.add_pdf_info_attribute(event.cpp_object, pdf_info)
+    return pdf_info
+end
+
+"""
+    add_cross_section!(event, xs, xs_err)
+Add cross section information to the event.
+"""
+function add_cross_section!(event, xs::Float64, xs_err::Float64)
+    cross_section = HepMC3.create_gen_cross_section()
+    HepMC3.set_cross_section(cross_section, xs, xs_err)
+    HepMC3.add_cross_section_attribute(event.cpp_object, cross_section)
+    return cross_section
+end
+
+"""
+    add_heavy_ion!(event, nh, np, nt, nc, ns, nsp, nn, nw, nwn, impact_b, plane_angle, eccentricity, sigma_nn)
+Add heavy ion collision information to the event.
+"""
+function add_heavy_ion!(event, nh::Int, np::Int, nt::Int, nc::Int, ns::Int, nsp::Int, nn::Int, 
+                       nw::Int, nwn::Int, impact_b::Float64, plane_angle::Float64, 
+                       eccentricity::Float64, sigma_nn::Float64)
+    heavy_ion = HepMC3.create_gen_heavy_ion()
+    HepMC3.set_heavy_ion_info(heavy_ion, nh, np, nt, nc, ns, nsp, nn, nw, nwn, 
+                              impact_b, plane_angle, eccentricity, sigma_nn)
+    HepMC3.add_heavy_ion_attribute(event.cpp_object, heavy_ion)
+    return heavy_ion
+end
+
+"""
+    create_particle_attribute(value)
+Create an attribute for a particle or vertex.
+"""
+function create_particle_attribute(value::Int)
+    return HepMC3.create_int_attribute(value)
+end
+
+function create_particle_attribute(value::Float64)
+    return HepMC3.create_double_attribute(value)
+end
+
+function create_particle_attribute(value::String)
+    return HepMC3.create_string_attribute(value)
+end
+
+"""
+    add_particle_attribute!(particle_ptr, name, value)
+Add an attribute to a particle.
+"""
+function add_particle_attribute!(particle_ptr, name::String, value)
+    attr = create_particle_attribute(value)
+    HepMC3.add_particle_attribute(particle_ptr, name, attr)
+    return attr
+end
+
+"""
+    remove_particle!(event, particle_ptr)
+Remove a particle from the event.
+"""
+function remove_particle!(event, particle_ptr)
+    HepMC3.remove_particle_from_event(event.cpp_object, particle_ptr)
+end
