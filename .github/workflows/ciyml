@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1.10'
+          - '1.11'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Julia environment
+      uses: julia-actions/setup-julia@v1
+      with:
+        version: ${{ matrix.version }}
+        arch: ${{ matrix.arch }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          pkg-config \
+          libhepmc3-dev \
+          python3-dev \
+          libclang-dev \
+          clang
+    
+    - name: Cache Julia packages
+      uses: actions/cache@v4
+      env:
+        cache-name: cache-artifacts
+      with:
+        path: ~/.julia
+        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+        restore-keys: ${{ runner.os }}-test-${{ env.cache-name }}-
+    
+    - name: Setup Julia project
+      run: |
+        julia --project=. -e "
+          using Pkg
+          Pkg.instantiate()
+          # Install WrapIt and make it available system-wide
+          Pkg.add(\"WrapIt\")
+          using WrapIt
+          WrapIt.install()
+        "
+    
+    - name: Install WrapIt executable system-wide
+      run: |
+        # Find WrapIt executable and copy to /usr/bin
+        WRAPIT_PATH=$(julia --project=. -e "using WrapIt; println(WrapIt.wrapit_path())")
+        echo "WrapIt found at: $WRAPIT_PATH"
+        sudo cp "$WRAPIT_PATH" /usr/bin/wrapit
+        sudo chmod +x /usr/bin/wrapit
+        wrapit --version
+    
+    - name: Clean and rebuild bindings from scratch
+      run: |
+        cd gen
+        rm -rf build/ cpp/jlHepMC3.* jl/
+        julia build.jl
+    
+    - name: Apply manual wrapper patches
+      run: |
+        # Apply the patches to include manual wrappers
+        sed -i '/#include "HepMC3\/Units.h"/a #include "HepMC3Wrap.h"' gen/cpp/jlHepMC3.cxx
+        sed -i '/for(const auto& w: wrappers) w->add_methods();/a \  add_manual_hepmc3_methods(jlModule);' gen/cpp/jlHepMC3.cxx
+        
+        # Verify patches were applied
+        echo "=== Checking if patches were applied ==="
+        grep -n "HepMC3Wrap.h" gen/cpp/jlHepMC3.cxx || echo "❌ HepMC3Wrap.h not found"
+        grep -n "add_manual_hepmc3_methods" gen/cpp/jlHepMC3.cxx || echo "❌ add_manual_hepmc3_methods not found"
+    
+    - name: Rebuild with manual wrappers
+      run: |
+        cd gen/build
+        cmake --build . --config Release --parallel 8
+    
+    - name: Test basic example
+      run: |
+        julia --project=. examples/basic_tree_julia.jl
+    
+    - name: Run test suite
+      run: |
+        julia --project=. -e "
+          using Pkg
+          Pkg.test()
+        "
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.version }}
+        path: |
+          gen/build/
+          examples/
+          test/
