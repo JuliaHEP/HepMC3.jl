@@ -211,3 +211,64 @@ void remove_particle_from_event(void* event, void* particle) {
     auto p = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle);
     e->remove_particle(*p);
 }
+
+
+void* get_particles_in(void* vertex) {
+    auto v = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex);
+    auto particles = (*v)->particles_in();
+    
+    // Create and return a vector of particle pointers
+    auto* particle_vec = new std::vector<std::shared_ptr<HepMC3::GenParticle>>();
+    for (auto& p : particles) {
+        particle_vec->push_back(p);
+    }
+    return particle_vec;
+}
+
+void* get_particles_out(void* vertex) {
+    auto v = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex);
+    auto particles = (*v)->particles_out();
+    
+    // Create and return a vector of particle pointers
+    auto* particle_vec = new std::vector<std::shared_ptr<HepMC3::GenParticle>>();
+    for (auto& p : particles) {
+        particle_vec->push_back(p);
+    }
+    return particle_vec;
+}
+
+// Raw pointer access functions for particles
+int get_particle_pdg_id(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->pdg_id();
+}
+
+int get_particle_status(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->status();
+}
+
+int get_particle_id(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->id();
+}
+
+double get_particle_px(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->momentum().px();
+}
+
+double get_particle_py(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->momentum().py();
+}
+
+double get_particle_pz(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->momentum().pz();
+}
+
+double get_particle_e(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    return (*particle)->momentum().e();
+}

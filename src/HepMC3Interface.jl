@@ -75,7 +75,7 @@ end
 # REMOVE from exports - these conflict with C++ functions:
 # export create_shared_particle, create_shared_vertex, add_particle_to_vertex_in, add_particle_to_vertex_out, add_vertex_to_event
 
-# CONFLICT: This shadows HepMC3.create_shared_particle (C++ function)
+# CONFLICT: This shadows create_shared_particle (C++ function)
 # """
 #     create_shared_particle(px, py, pz, e, pdg_id, status)
 # Create a new shared_ptr GenParticle (for use with vertices).
@@ -84,48 +84,48 @@ end
 #                                pdg_id::Int, status::Int)
 #     momentum = FourVector(px, py, pz, e)
 #     momentum_ptr = momentum.cpp_object
-#     return HepMC3.create_shared_particle(momentum_ptr, pdg_id, status)
+#     return create_shared_particle(momentum_ptr, pdg_id, status)
 # end
 
-# CONFLICT: This shadows HepMC3.create_shared_vertex (C++ function) - ALREADY COMMENTED ✅
+# CONFLICT: This shadows create_shared_vertex (C++ function)
 # """
 #     create_shared_vertex()
 # Create a new shared_ptr GenVertex.
 # """
 # function create_shared_vertex()
-#     return HepMC3.create_shared_vertex()
+#     return create_shared_vertex()
 # end
 
-# CONFLICT: This shadows HepMC3.add_shared_particle_in (C++ function)
+# CONFLICT: This shadows add_shared_particle_in (C++ function)
 # """
 #     add_particle_to_vertex_in(vertex_ptr, particle_ptr)
 # Add a particle as incoming to a vertex (using shared_ptr).
 # """
 # function add_particle_to_vertex_in(vertex_ptr, particle_ptr)
-#     return HepMC3.add_shared_particle_in(vertex_ptr, particle_ptr)
+#     return add_shared_particle_in(vertex_ptr, particle_ptr)
 # end
 
-# CONFLICT: This shadows HepMC3.add_shared_particle_out (C++ function)
+# CONFLICT: This shadows add_shared_particle_out (C++ function)
 # """
 #     add_particle_to_vertex_out(vertex_ptr, particle_ptr) 
 # Add a particle as outgoing from a vertex (using shared_ptr).
 # """
 # function add_particle_to_vertex_out(vertex_ptr, particle_ptr)
-#     return HepMC3.add_shared_particle_out(vertex_ptr, particle_ptr)
+#     return add_shared_particle_out(vertex_ptr, particle_ptr)
 # end
 
-# CONFLICT: This shadows HepMC3.add_shared_vertex_to_event (C++ function)
+# CONFLICT: This shadows add_shared_vertex_to_event (C++ function)
 # """
 #     add_vertex_to_event(event, vertex_ptr)
 # Add a vertex to an event (using shared_ptr).
 # """
 # function add_vertex_to_event(event, vertex_ptr)
 #     event_ptr = event.cpp_object
-#     return HepMC3.add_shared_vertex_to_event(event_ptr, vertex_ptr)
+#     return add_shared_vertex_to_event(event_ptr, vertex_ptr)
 # end
 
 # ============================================================================
-# ALTERNATIVE: Use different names if you want convenience functions
+# ALTERNATIVE: Using different names for convenience functions
 # ============================================================================
 
 export make_shared_particle, make_shared_vertex, connect_particle_in, connect_particle_out, attach_vertex_to_event
@@ -139,7 +139,7 @@ function make_shared_particle(px::Float64, py::Float64, pz::Float64, e::Float64,
                              pdg_id::Int, status::Int)
     momentum = FourVector(px, py, pz, e)
     momentum_ptr = momentum.cpp_object
-    return HepMC3.create_shared_particle(momentum_ptr, pdg_id, status)
+    return create_shared_particle(momentum_ptr, pdg_id, status)
 end
 
 """
@@ -148,7 +148,7 @@ Create a new shared_ptr GenVertex.
 Uses different name to avoid conflict with C++ function.
 """
 function make_shared_vertex()
-    return HepMC3.create_shared_vertex()
+    return create_shared_vertex()
 end
 
 """
@@ -156,7 +156,7 @@ end
 Add a particle as incoming to a vertex (using shared_ptr).
 """
 function connect_particle_in(vertex_ptr, particle_ptr)
-    return HepMC3.add_shared_particle_in(vertex_ptr, particle_ptr)
+    return add_shared_particle_in(vertex_ptr, particle_ptr)
 end
 
 """
@@ -164,7 +164,7 @@ end
 Add a particle as outgoing from a vertex (using shared_ptr).
 """
 function connect_particle_out(vertex_ptr, particle_ptr)
-    return HepMC3.add_shared_particle_out(vertex_ptr, particle_ptr)
+    return add_shared_particle_out(vertex_ptr, particle_ptr)
 end
 
 """
@@ -173,14 +173,10 @@ Add a vertex to an event (using shared_ptr).
 """
 function attach_vertex_to_event(event, vertex_ptr)
     event_ptr = event.cpp_object
-    return HepMC3.add_shared_vertex_to_event(event_ptr, vertex_ptr)
+    return add_shared_vertex_to_event(event_ptr, vertex_ptr)
 end
 
-
-
-
-
-# Add to HepMC3Interface.jl
+# ============================================================================
 
 export set_vertex_status!, shift_position!, add_pdf_info!, add_cross_section!, add_heavy_ion!
 export create_particle_attribute, add_particle_attribute!, remove_particle!
@@ -190,7 +186,7 @@ export create_particle_attribute, add_particle_attribute!, remove_particle!
 Set the status of a vertex.
 """
 function set_vertex_status!(vertex_ptr, status::Int)
-    HepMC3.set_vertex_status(vertex_ptr, status)
+    set_vertex_status(vertex_ptr, status)
 end
 
 """
@@ -199,7 +195,7 @@ Shift the position of all vertices in the event.
 """
 function shift_position!(event, dx::Float64, dy::Float64, dz::Float64, dt::Float64)
     shift_vector = FourVector(dx, dy, dz, dt)
-    HepMC3.shift_event_position(event.cpp_object, shift_vector.cpp_object)
+    shift_event_position(event.cpp_object, shift_vector.cpp_object)
 end
 
 """
@@ -208,9 +204,9 @@ Add PDF information to the event.
 """
 function add_pdf_info!(event, id1::Int, id2::Int, x1::Float64, x2::Float64, q::Float64, 
                       pdf1::Float64, pdf2::Float64, pdf_set_id1::Int, pdf_set_id2::Int)
-    pdf_info = HepMC3.create_gen_pdf_info()
-    HepMC3.set_pdf_info(pdf_info, id1, id2, x1, x2, q, pdf1, pdf2, pdf_set_id1, pdf_set_id2)
-    HepMC3.add_pdf_info_attribute(event.cpp_object, pdf_info)
+    pdf_info = create_gen_pdf_info()
+    set_pdf_info(pdf_info, id1, id2, x1, x2, q, pdf1, pdf2, pdf_set_id1, pdf_set_id2)
+    add_pdf_info_attribute(event.cpp_object, pdf_info)
     return pdf_info
 end
 
@@ -219,9 +215,9 @@ end
 Add cross section information to the event.
 """
 function add_cross_section!(event, xs::Float64, xs_err::Float64)
-    cross_section = HepMC3.create_gen_cross_section()
-    HepMC3.set_cross_section(cross_section, xs, xs_err)
-    HepMC3.add_cross_section_attribute(event.cpp_object, cross_section)
+    cross_section = create_gen_cross_section()
+    set_cross_section(cross_section, xs, xs_err)
+    add_cross_section_attribute(event.cpp_object, cross_section)
     return cross_section
 end
 
@@ -232,10 +228,10 @@ Add heavy ion collision information to the event.
 function add_heavy_ion!(event, nh::Int, np::Int, nt::Int, nc::Int, ns::Int, nsp::Int, nn::Int, 
                        nw::Int, nwn::Int, impact_b::Float64, plane_angle::Float64, 
                        eccentricity::Float64, sigma_nn::Float64)
-    heavy_ion = HepMC3.create_gen_heavy_ion()
-    HepMC3.set_heavy_ion_info(heavy_ion, nh, np, nt, nc, ns, nsp, nn, nw, nwn, 
+    heavy_ion = create_gen_heavy_ion()
+    set_heavy_ion_info(heavy_ion, nh, np, nt, nc, ns, nsp, nn, nw, nwn, 
                               impact_b, plane_angle, eccentricity, sigma_nn)
-    HepMC3.add_heavy_ion_attribute(event.cpp_object, heavy_ion)
+    add_heavy_ion_attribute(event.cpp_object, heavy_ion)
     return heavy_ion
 end
 
@@ -244,15 +240,15 @@ end
 Create an attribute for a particle or vertex.
 """
 function create_particle_attribute(value::Int)
-    return HepMC3.create_int_attribute(value)
+    return create_int_attribute(value)
 end
 
 function create_particle_attribute(value::Float64)
-    return HepMC3.create_double_attribute(value)
+    return create_double_attribute(value)
 end
 
 function create_particle_attribute(value::String)
-    return HepMC3.create_string_attribute(value)
+    return create_string_attribute(value)
 end
 
 """
@@ -261,7 +257,7 @@ Add an attribute to a particle.
 """
 function add_particle_attribute!(particle_ptr, name::String, value)
     attr = create_particle_attribute(value)
-    HepMC3.add_particle_attribute(particle_ptr, name, attr)
+    add_particle_attribute(particle_ptr, name, attr)
     return attr
 end
 
@@ -270,5 +266,394 @@ end
 Remove a particle from the event.
 """
 function remove_particle!(event, particle_ptr)
-    HepMC3.remove_particle_from_event(event.cpp_object, particle_ptr)
+    remove_particle_from_event(event.cpp_object, particle_ptr)
+end
+
+# ============================================================================
+# Add to HepMC3Interface.jl
+
+export get_particle_properties, get_vertex_properties, particle_mass, particle_charge
+
+
+"""
+    get_particle_properties(particle_ptr)
+Get comprehensive properties of a particle in a type-safe manner.
+Returns a NamedTuple with all particle properties.
+"""
+function get_particle_properties(particle_ptr)
+    if particle_ptr == C_NULL
+        @warn "Particle pointer is NULL"
+        return (
+            pdg_id = 0, status = 0, momentum = (px = 0.0, py = 0.0, pz = 0.0, e = 0.0),
+            pt = 0.0, eta = 0.0, phi = 0.0, mass = 0.0, id = 0
+        )
+    end
+    
+    try
+        # Handle different types of particle representations
+        if isa(particle_ptr, Ptr{Nothing})
+            # Raw pointer - use our new manual wrapper functions
+            pdg = HepMC3.get_particle_pdg_id(particle_ptr)
+            stat = HepMC3.get_particle_status(particle_ptr)
+            id_val = HepMC3.get_particle_id(particle_ptr)
+            
+            # Get momentum components directly
+            px_val = HepMC3.get_particle_px(particle_ptr)
+            py_val = HepMC3.get_particle_py(particle_ptr)
+            pz_val = HepMC3.get_particle_pz(particle_ptr)
+            e_val = HepMC3.get_particle_e(particle_ptr)
+            
+            mom = (px = px_val, py = py_val, pz = pz_val, e = e_val)
+        else
+            # Wrapped object - use normal methods
+            pdg = HepMC3.pdg_id(particle_ptr)
+            stat = HepMC3.status(particle_ptr)
+            id_val = HepMC3.id(particle_ptr)
+            
+            mom_ptr = HepMC3.momentum(particle_ptr)
+            mom = (
+                px = HepMC3.px(mom_ptr), 
+                py = HepMC3.py(mom_ptr), 
+                pz = HepMC3.pz(mom_ptr), 
+                e = HepMC3.e(mom_ptr)
+            )
+        end
+        
+        # Calculate derived quantities
+        pt = sqrt(mom.px^2 + mom.py^2)
+        eta = mom.pz != 0 ? 0.5 * log((mom.e + mom.pz)/(mom.e - mom.pz)) : 0.0
+        phi = atan(mom.py, mom.px)
+        mass = sqrt(max(0, mom.e^2 - mom.px^2 - mom.py^2 - mom.pz^2))
+        
+        return (
+            pdg_id = pdg,
+            status = stat,
+            momentum = mom,
+            pt = pt,
+            eta = eta,
+            phi = phi,
+            mass = mass,
+            id = id_val
+        )
+        
+    catch e
+        @error "Error getting particle properties: $e"
+        @error "Particle pointer: $particle_ptr"
+        @error "Particle type: $(typeof(particle_ptr))"
+        
+        # Return safe defaults
+        return (
+            pdg_id = 0, status = 0, momentum = (px = 0.0, py = 0.0, pz = 0.0, e = 0.0),
+            pt = 0.0, eta = 0.0, phi = 0.0, mass = 0.0, id = 0
+        )
+    end
+end
+
+
+
+"""
+    get_vertex_properties(vertex_ptr)
+Get comprehensive properties of a vertex.
+"""
+function get_vertex_properties(vertex_ptr)
+    if vertex_ptr == C_NULL
+        return (
+            id = 0,
+            status = -1,
+            position = (x = 0.0, y = 0.0, z = 0.0, t = 0.0)
+        )
+    end
+    
+    try
+        # Use explicit type annotation to resolve ambiguity
+        vertex_id = HepMC3.id(vertex_ptr)::Int
+        vertex_status = try 
+            HepMC3.status(vertex_ptr)::Int 
+        catch 
+            -1 
+        end
+        
+        vertex_position = try
+            pos = HepMC3.position(vertex_ptr)
+            (x = HepMC3.x(pos), y = HepMC3.y(pos), z = HepMC3.z(pos), t = HepMC3.t(pos))
+        catch
+            (x = 0.0, y = 0.0, z = 0.0, t = 0.0)
+        end
+        
+        return (
+            id = vertex_id,
+            status = vertex_status,
+            position = vertex_position
+        )
+    catch e
+        @error "Error getting vertex properties: $e"
+        return (
+            id = 0,
+            status = -1,
+            position = (x = 0.0, y = 0.0, z = 0.0, t = 0.0)
+        )
+    end
+end
+
+"""
+    particle_mass(particle_ptr)
+Calculate the invariant mass of a particle from its four-momentum.
+"""
+function particle_mass(particle_ptr)
+    props = get_particle_properties(particle_ptr)
+    return props.mass
+end
+
+"""
+    particle_charge(pdg_id::Int)
+Get the electric charge of a particle from its PDG ID.
+"""
+function particle_charge(pdg_id::Int)
+    # Basic charge lookup for common particles
+    charge_map = Dict(
+        11 => -1,    # electron
+        -11 => 1,    # positron
+        13 => -1,    # muon
+        -13 => 1,    # anti-muon
+        22 => 0,     # photon
+        23 => 0,     # Z boson
+        24 => 1,     # W+
+        -24 => -1,   # W-
+        2212 => 1,   # proton
+        -2212 => -1, # anti-proton
+        2112 => 0,   # neutron
+        211 => 1,    # pi+
+        -211 => -1,  # pi-
+        111 => 0,    # pi0
+        1 => 1/3,    # d quark
+        -1 => -1/3,  # d anti-quark
+        2 => 2/3,    # u quark
+        -2 => -2/3   # u anti-quark
+    )
+    
+    return get(charge_map, pdg_id, 0)
+end
+
+# ============================================================================
+
+export get_production_vertex, get_decay_vertex, get_incoming_particles, get_outgoing_particles
+export get_parent_particles, get_decay_products, get_sibling_particles, traverse_decay_chain
+export find_particle_ancestry
+
+"""
+    get_production_vertex(particle_ptr)
+Get the production vertex of a particle.
+"""
+function get_production_vertex(particle_ptr)
+    try
+        return production_vertex(particle_ptr)
+    catch
+        return C_NULL
+    end
+end
+
+"""
+    get_decay_vertex(particle_ptr)  
+Get the decay vertex of a particle.
+"""
+function get_decay_vertex(particle_ptr)
+    try
+        return end_vertex(particle_ptr)
+    catch
+        return C_NULL
+    end
+end
+
+# Replace the navigation functions with simpler versions:
+
+"""
+    get_incoming_particles(vertex_ptr)
+Get all incoming particles for a vertex.
+"""
+function get_incoming_particles(vertex_ptr)
+    particles = []
+    try
+        # Use our new manual wrapper
+        particle_vec = get_particles_in(vertex_ptr)
+        if particle_vec != C_NULL
+            n_particles = particle_vector_size(particle_vec)
+            
+            for i in 0:(n_particles-1)
+                particle = particle_vector_at(particle_vec, i)
+                push!(particles, particle)
+            end
+            
+            delete_particle_vector(particle_vec)
+        end
+    catch e
+        @warn "Could not get incoming particles: $e"
+    end
+    return particles
+end
+
+"""
+    get_outgoing_particles(vertex_ptr)
+Get all outgoing particles for a vertex.
+"""
+function get_outgoing_particles(vertex_ptr)
+    particles = []
+    try
+        # Use our new manual wrapper
+        particle_vec = get_particles_out(vertex_ptr)
+        if particle_vec != C_NULL
+            n_particles = particle_vector_size(particle_vec)
+            
+            for i in 0:(n_particles-1)
+                particle = particle_vector_at(particle_vec, i)
+                push!(particles, particle)
+            end
+            
+            delete_particle_vector(particle_vec)
+        end
+    catch e
+        @warn "Could not get outgoing particles: $e"
+    end
+    return particles
+end
+
+"""
+    get_parent_particles(particle_ptr)
+Get all parent particles (backward traversal).
+"""
+function get_parent_particles(particle_ptr)
+    parents = []
+    prod_vertex = get_production_vertex(particle_ptr)
+    
+    if prod_vertex != C_NULL
+        parents = get_incoming_particles(prod_vertex)
+    end
+    
+    return parents
+end
+
+"""
+    get_decay_products(particle_ptr)
+Get all immediate decay products (forward traversal).
+"""
+function get_decay_products(particle_ptr)
+    products = []
+    decay_vertex = get_decay_vertex(particle_ptr)
+    
+    if decay_vertex != C_NULL
+        products = get_outgoing_particles(decay_vertex)
+    end
+    
+    return products
+end
+
+"""
+    get_sibling_particles(particle_ptr)
+Get all sibling particles (particles from same production vertex).
+"""
+function get_sibling_particles(particle_ptr)
+    siblings = []
+    prod_vertex = get_production_vertex(particle_ptr)
+    
+    if prod_vertex != C_NULL
+        all_products = get_outgoing_particles(prod_vertex)
+        # Filter out the particle itself
+        siblings = filter(p -> p != particle_ptr, all_products)
+    end
+    
+    return siblings
+end
+
+"""
+    traverse_decay_chain(particle_ptr, max_depth=10)
+Recursively traverse the complete decay chain forward.
+Returns a tree structure of all decay products.
+"""
+function traverse_decay_chain(particle_ptr, max_depth=10)
+    if max_depth <= 0
+        return []
+    end
+    
+    decay_tree = []
+    products = get_decay_products(particle_ptr)
+    
+    for product in products
+        product_info = get_particle_properties(product)
+        children = traverse_decay_chain(product, max_depth - 1)
+        
+        push!(decay_tree, (
+            particle = product,
+            properties = product_info,
+            children = children
+        ))
+    end
+    
+    return decay_tree
+end
+
+"""
+    find_particle_ancestry(particle_ptr, max_depth=10)
+Recursively traverse backward to find all ancestors.
+"""
+function find_particle_ancestry(particle_ptr, max_depth=10)
+    if max_depth <= 0
+        return []
+    end
+    
+    ancestry = []
+    parents = get_parent_particles(particle_ptr)
+    
+    for parent in parents
+        parent_info = get_particle_properties(parent)
+        grandparents = find_particle_ancestry(parent, max_depth - 1)
+        
+        push!(ancestry, (
+            particle = parent,
+            properties = parent_info,
+            ancestors = grandparents
+        ))
+    end
+    
+    return ancestry
+end
+
+
+
+# ============================================================================
+# Remove all the complicated stuff and just add this:
+
+# Export clean unit constants and set_units!
+export GeV, MeV, mm, cm, set_units!
+
+# Define clean unit constants
+const GeV = var"HepMC3!Units!GEV"
+const MeV = var"HepMC3!Units!MEV"  
+const mm = var"HepMC3!Units!MM"
+const cm = var"HepMC3!Units!CM"
+
+# Symbol-based interface
+const UNIT_MAP = Dict(
+    :GeV => var"HepMC3!Units!GEV",
+    :MeV => var"HepMC3!Units!MEV",
+    :mm => var"HepMC3!Units!MM", 
+    :cm => var"HepMC3!Units!CM"
+)
+
+"""
+    set_units!(event, momentum_unit, length_unit)
+Set the units for an event using clean syntax.
+
+# Examples
+```julia
+event = GenEvent()
+set_units!(event, :GeV, :mm)    # Using symbols
+set_units!(event, GeV, mm)      # Using constants
+```
+"""
+
+function set_units!(event, momentum_unit, length_unit)
+    # Convert symbols to internal constants if needed
+    mom_unit = momentum_unit isa Symbol ? UNIT_MAP[momentum_unit] : momentum_unit
+    len_unit = length_unit isa Symbol ? UNIT_MAP[length_unit] : length_unit
+    
+    set_units(event, mom_unit, len_unit)
 end

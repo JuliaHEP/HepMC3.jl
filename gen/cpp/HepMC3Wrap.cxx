@@ -60,5 +60,18 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     
     // NEW: Event manipulation
     mod.method("remove_particle_from_event", &remove_particle_from_event);
+
+
+    mod.method("get_particles_in", &get_particles_in);
+    mod.method("get_particles_out", &get_particles_out);
+    
+    // Raw pointer access functions for particles
+    mod.method("get_particle_pdg_id", &get_particle_pdg_id);
+    mod.method("get_particle_status", &get_particle_status);
+    mod.method("get_particle_id", &get_particle_id);
+    mod.method("get_particle_px", &get_particle_px);
+    mod.method("get_particle_py", &get_particle_py);
+    mod.method("get_particle_pz", &get_particle_pz);
+    mod.method("get_particle_e", &get_particle_e);
 }
 // No JLCXX_MODULE here - that's handled by the generated code
