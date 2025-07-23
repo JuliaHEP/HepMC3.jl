@@ -14,7 +14,7 @@ o.*
 HepMC3.wit
 jlHepMC3-report.txt
 gen/cpp/JL*.cxx
-gen/cpp/*.h
+# gen/cpp/*.h
 gen/cpp/jl*
 gen/cpp/generated_cxx
 
