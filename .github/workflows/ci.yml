@@ -51,13 +51,15 @@ jobs:
         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
         restore-keys: ${{ runner.os }}-test-${{ env.cache-name }}-
     
-    - name: Setup Julia project and install WrapIt
+    - name: Setup Julia project and install dependencies
       run: |
         julia --project=. -e "
           using Pkg
           Pkg.instantiate()
-          # Install WrapIt
-          Pkg.add(\"WrapIt\")
+          # Install additional required packages
+          Pkg.add([\"CxxWrap\", \"WrapIt\"])
+          # Load to trigger any builds
+          using CxxWrap
           using WrapIt
           WrapIt.install()
         "
@@ -173,7 +175,8 @@ jobs:
       run: |
         cd gen
         rm -rf build/ cpp/jlHepMC3.* jl/
-        julia build.jl
+        # Use the project environment when running build.jl
+        julia --project=.. build.jl
     
     - name: Apply manual wrapper patches
       run: |
