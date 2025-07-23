@@ -40,8 +40,7 @@ jobs:
           libhepmc3-dev \
           python3-dev \
           libclang-dev \
-          clang \
-          llvm-dev
+          clang
     
     - name: Cache Julia packages
       uses: actions/cache@v4
@@ -65,132 +64,124 @@ jobs:
           WrapIt.install()
         "
     
-    - name: Find Julia's libclang and setup environment
-      run: |
-        echo "=== Setting up libclang environment ==="
-        
-        # Find Julia's libclang
-        JULIA_DEPOT=$(julia -e "println(first(DEPOT_PATH))")
-        echo "Julia depot: $JULIA_DEPOT"
-        
-        # Search for libclang in Julia's artifacts
-        LIBCLANG_PATH=$(find $JULIA_DEPOT -name "libclang*.so*" 2>/dev/null | head -1)
-        if [ -n "$LIBCLANG_PATH" ]; then
-          LIBCLANG_DIR=$(dirname "$LIBCLANG_PATH")
-          echo "Found Julia's libclang at: $LIBCLANG_PATH"
-          echo "Libclang directory: $LIBCLANG_DIR"
-          
-          # Add to LD_LIBRARY_PATH
-          echo "LD_LIBRARY_PATH=$LIBCLANG_DIR:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          
-          # Also try to symlink to system location
-          sudo ln -sf "$LIBCLANG_PATH" /usr/lib/libclang.so 2>/dev/null || true
-          sudo ln -sf "$LIBCLANG_PATH" /usr/lib/x86_64-linux-gnu/libclang.so 2>/dev/null || true
-        else
-          echo "Julia's libclang not found, using system libclang"
-          # Ensure system libclang is available
-          sudo apt-get install -y libclang-19-dev || sudo apt-get install -y libclang-dev
-        fi
-        
-        # Export LD_LIBRARY_PATH for current session
-        export LD_LIBRARY_PATH="$LIBCLANG_DIR:$LD_LIBRARY_PATH"
-        echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-        
-        # Check what libclang libraries are available
-        echo "=== Available libclang libraries ==="
-        find /usr/lib* -name "*libclang*" 2>/dev/null || echo "No system libclang found"
-        find $JULIA_DEPOT -name "*libclang*" 2>/dev/null || echo "No Julia libclang found"
-        
-        # Check if we can find the specific version
-        ls -la /usr/lib*/libclang* 2>/dev/null || echo "No system libclang details"
-    
     - name: Find and install WrapIt executable
       run: |
-        # Export the library path from previous step
-        JULIA_DEPOT=$(julia -e "println(first(DEPOT_PATH))")
-        LIBCLANG_PATH=$(find $JULIA_DEPOT -name "libclang*.so*" 2>/dev/null | head -1)
-        if [ -n "$LIBCLANG_PATH" ]; then
-          LIBCLANG_DIR=$(dirname "$LIBCLANG_PATH")
-          export LD_LIBRARY_PATH="$LIBCLANG_DIR:$LD_LIBRARY_PATH"
-        fi
-        
+        # Try multiple ways to find WrapIt executable
         echo "=== Searching for WrapIt executable ==="
+        
+        # Method 1: Check if it's in Julia packages
+        JULIA_DEPOT=$(julia -e "println(first(DEPOT_PATH))")
+        echo "Julia depot: $JULIA_DEPOT"
         
         # Search for wrapit executable
         find $JULIA_DEPOT -name "wrapit*" -type f 2>/dev/null || echo "No wrapit found in depot"
         find ~/.julia -name "wrapit*" -type f 2>/dev/null || echo "No wrapit found in ~/.julia"
         
-        # Try to get path from WrapIt module
+        # Method 2: Try to get path from WrapIt module
         WRAPIT_PATH=$(julia --project=. -e "
           using WrapIt
-          # Search in WrapIt package directory
-          pkg_dir = dirname(dirname(pathof(WrapIt)))
-          println(\"Searching in: \", pkg_dir)
-          for (root, dirs, files) in walkdir(pkg_dir)
-            for file in files
-              if startswith(file, \"wrapit\") && isfile(joinpath(root, file))
-                println(joinpath(root, file))
-                exit()
+          # Try different possible function names
+          try
+            println(WrapIt.wrapit_executable())
+          catch
+            try
+              println(WrapIt.executable_path())
+            catch
+              try
+                println(joinpath(dirname(pathof(WrapIt)), \"..\", \"deps\", \"wrapit\"))
+              catch
+                # Search in WrapIt package directory
+                pkg_dir = dirname(dirname(pathof(WrapIt)))
+                println(\"Searching in: \", pkg_dir)
+                for (root, dirs, files) in walkdir(pkg_dir)
+                  for file in files
+                    if startswith(file, \"wrapit\") && isfile(joinpath(root, file))
+                      println(joinpath(root, file))
+                      break
+                    end
+                  end
+                end
               end
             end
           end
-        " 2>/dev/null || echo "Could not find WrapIt via Julia search")
+        " 2>/dev/null || echo "Could not determine WrapIt path via Julia")
         
         echo "WrapIt path candidate: $WRAPIT_PATH"
         
-        # Manual search and install
+        # Method 3: Manual search and install
         if [ -n "$WRAPIT_PATH" ] && [ -f "$WRAPIT_PATH" ]; then
           echo "Found WrapIt at: $WRAPIT_PATH"
           sudo cp "$WRAPIT_PATH" /usr/bin/wrapit
           sudo chmod +x /usr/bin/wrapit
         else
           echo "=== Manual WrapIt search ==="
-          FOUND_WRAPIT=$(find $JULIA_DEPOT ~/.julia -name "wrapit*" -type f -executable 2>/dev/null | head -1)
+          # Search common locations
+          POSSIBLE_LOCATIONS=(
+            "$JULIA_DEPOT/packages/WrapIt"
+            "$JULIA_DEPOT/packages/WrapIt/*/deps"
+            "$JULIA_DEPOT/packages/WrapIt/*/bin"
+            "~/.julia/packages/WrapIt"
+            "~/.julia/packages/WrapIt/*/deps"
+            "~/.julia/packages/WrapIt/*/bin"
+          )
           
-          if [ -n "$FOUND_WRAPIT" ]; then
-            echo "Found WrapIt executable: $FOUND_WRAPIT"
-            sudo cp "$FOUND_WRAPIT" /usr/bin/wrapit
-            sudo chmod +x /usr/bin/wrapit
-          else
-            echo "❌ Could not find WrapIt executable"
-            exit 1
+          FOUND_WRAPIT=""
+          for loc in "${POSSIBLE_LOCATIONS[@]}"; do
+            echo "Checking: $loc"
+            if [ -d "$loc" ]; then
+              FOUND_WRAPIT=$(find "$loc" -name "wrapit*" -type f -executable 2>/dev/null | head -1)
+              if [ -n "$FOUND_WRAPIT" ]; then
+                echo "Found WrapIt executable: $FOUND_WRAPIT"
+                sudo cp "$FOUND_WRAPIT" /usr/bin/wrapit
+                sudo chmod +x /usr/bin/wrapit
+                break
+              fi
+            fi
+          done
+          
+          if [ -z "$FOUND_WRAPIT" ]; then
+            echo "❌ Could not find WrapIt executable, trying to build from source"
+            julia --project=. -e "
+              using WrapIt
+              # Force rebuild/reinstall
+              try
+                WrapIt.build()
+              catch e
+                println(\"Build failed: \", e)
+              end
+            "
+            
+            # Try search again after build
+            FOUND_WRAPIT=$(find ~/.julia -name "wrapit*" -type f -executable 2>/dev/null | head -1)
+            if [ -n "$FOUND_WRAPIT" ]; then
+              echo "Found WrapIt after build: $FOUND_WRAPIT"
+              sudo cp "$FOUND_WRAPIT" /usr/bin/wrapit
+              sudo chmod +x /usr/bin/wrapit
+            fi
           fi
         fi
         
-        # Test WrapIt with proper library path
-        echo "=== Testing WrapIt installation ==="
-        echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-        which wrapit
-        
-        # Try to run wrapit with library path
-        LD_LIBRARY_PATH="$LD_LIBRARY_PATH" wrapit --version || echo "WrapIt installed but version check failed"
-        
-        # Create a wrapper script that sets the environment
-        sudo tee /usr/bin/wrapit-with-env > /dev/null << EOF
-#!/bin/bash
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-exec /usr/bin/wrapit "\$@"
-EOF
-        sudo chmod +x /usr/bin/wrapit-with-env
+        # Verify installation
+        if command -v wrapit &> /dev/null; then
+          echo "✅ WrapIt installed successfully"
+          wrapit --version || echo "WrapIt installed but no version info"
+          which wrapit
+        else
+          echo "❌ WrapIt installation failed"
+          exit 1
+        fi
     
     - name: Clean and rebuild bindings from scratch
       run: |
-        # Set up environment
-        JULIA_DEPOT=$(julia -e "println(first(DEPOT_PATH))")
-        LIBCLANG_PATH=$(find $JULIA_DEPOT -name "libclang*.so*" 2>/dev/null | head -1)
-        if [ -n "$LIBCLANG_PATH" ]; then
-          LIBCLANG_DIR=$(dirname "$LIBCLANG_PATH")
-          export LD_LIBRARY_PATH="$LIBCLANG_DIR:$LD_LIBRARY_PATH"
-        fi
-        
         cd gen
         rm -rf build/ cpp/jlHepMC3.* jl/
         
-        # Modify build.jl to use the wrapper script or set environment
-        sed -i 's|`wrapit |`env LD_LIBRARY_PATH="'"$LD_LIBRARY_PATH"'" wrapit |g' build.jl
+        # Find Julia's libclang and set environment
+        JULIA_DEPOT=$(julia -e "println(first(DEPOT_PATH))")
+        LIBCLANG_DIR=$(find $JULIA_DEPOT -name "libclang*.so*" 2>/dev/null | head -1 | xargs dirname)
         
-        # Use the project environment when running build.jl
-        julia --project=.. build.jl
+        # Run build.jl with proper library path
+        LD_LIBRARY_PATH="$LIBCLANG_DIR:$LD_LIBRARY_PATH" julia --project=.. build.jl
     
     - name: Apply manual wrapper patches
       run: |
