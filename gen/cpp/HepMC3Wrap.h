@@ -142,6 +142,15 @@ extern "C" {
     void* get_event_from_vector(void* events_vector, int index);
     int get_events_vector_size(void* events_vector);
     void delete_events_vector(void* events_vector);
+
+
+
+    // New raw pointer functions for test compatibility
+    int particles_size_raw(void* event);
+    int vertices_size_raw(void* event);
+    void* get_particle_at_raw(void* event, int index);
+    void* get_vertex_at_raw(void* event, int index);
+
 }
 
 #endif

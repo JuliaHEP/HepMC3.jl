@@ -309,3 +309,92 @@ julia build.jl
 ```
 
 Run the test file 
+
+
+
+Critical Issue we encountered and fixed 
+
+
+SOltuion : dual typing C++ functions, 
+
+since shared pointer version work with jet reconstruction pipeline
+and 
+non shared_pointer function work with runtests.jl
+
+
+   mod.method("particles_size", &particles_size);
+    mod.method("vertices_size", &vertices_size);
+    mod.method("get_particle_at", &get_particle_at);
+    mod.method("get_vertex_at", &get_vertex_at);
+
+
+    // For raw pointers
+    mod.method("particles_size_raw", &particles_size_raw);
+    mod.method("vertices_size_raw", &vertices_size_raw);
+    mod.method("get_particle_at_raw", &get_particle_at_raw);
+    mod.method("get_vertex_at_raw", &get_vertex_at_raw);
+
+
+    after which we exposed interfaces for non_shared pointer for runtests.jl
+    ```
+
+    # ============================================================================
+# WRAPPER METHODS FOR SHARED_PTR COMPATIBILITY
+# ============================================================================
+
+# Create alias for the generated type
+const GenEventAllocated = var"HepMC3!GenEventAllocated"
+export GenEventAllocated
+
+
+
+# Replace the existing wrapper functions (around lines 942-977) with these:
+
+# ============================================================================
+# WRAPPER METHODS FOR TEST COMPATIBILITY (using _raw functions)
+# ============================================================================
+
+# Wrapper methods for GenEventAllocated (the type used in tests)
+function particles_size(event::GenEventAllocated)
+    event_raw_ptr = event.cpp_object  # This is GenEvent*
+    return particles_size_raw(event_raw_ptr)
+end
+
+function vertices_size(event::GenEventAllocated)
+    event_raw_ptr = event.cpp_object
+    return vertices_size_raw(event_raw_ptr)
+end
+
+function get_particle_at(event::GenEventAllocated, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_particle_at_raw(event_raw_ptr, index - 1)  # Convert to 0-based indexing
+end
+
+function get_vertex_at(event::GenEventAllocated, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_vertex_at_raw(event_raw_ptr, index - 1)
+end
+
+# Same for GenEvent type
+function particles_size(event::GenEvent)
+    event_raw_ptr = event.cpp_object
+    return particles_size_raw(event_raw_ptr)
+end
+
+function vertices_size(event::GenEvent)
+    event_raw_ptr = event.cpp_object
+    return vertices_size_raw(event_raw_ptr)
+end
+
+function get_particle_at(event::GenEvent, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_particle_at_raw(event_raw_ptr, index - 1)
+end
+
+function get_vertex_at(event::GenEvent, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_vertex_at_raw(event_raw_ptr, index - 1)
+end
+
+
+```

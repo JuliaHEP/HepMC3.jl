@@ -1,3 +1,5 @@
+using CodecZstd
+
 # Exports for C++ functions 
 export get_generated_mass, is_generated_mass_set, set_generated_mass, unset_generated_mass
 export set_vertex_position, get_vertex_position
@@ -74,65 +76,6 @@ function Base.show(io::IO, event::GenEvent)
     print(io, "GenEvent(number=$(event_number(event)))")
 end
 
-# ============================================================================
-# COMMENTED OUT: These functions conflict with C++ function names
-# ============================================================================
-
-# REMOVE from exports - these conflict with C++ functions:
-# export create_shared_particle, create_shared_vertex, add_particle_to_vertex_in, add_particle_to_vertex_out, add_vertex_to_event
-
-# CONFLICT: This shadows create_shared_particle (C++ function)
-# """
-#     create_shared_particle(px, py, pz, e, pdg_id, status)
-# Create a new shared_ptr GenParticle (for use with vertices).
-# """
-# function create_shared_particle(px::Float64, py::Float64, pz::Float64, e::Float64, 
-#                                pdg_id::Int, status::Int)
-#     momentum = FourVector(px, py, pz, e)
-#     momentum_ptr = momentum.cpp_object
-#     return create_shared_particle(momentum_ptr, pdg_id, status)
-# end
-
-# CONFLICT: This shadows create_shared_vertex (C++ function)
-# """
-#     create_shared_vertex()
-# Create a new shared_ptr GenVertex.
-# """
-# function create_shared_vertex()
-#     return create_shared_vertex()
-# end
-
-# CONFLICT: This shadows add_shared_particle_in (C++ function)
-# """
-#     add_particle_to_vertex_in(vertex_ptr, particle_ptr)
-# Add a particle as incoming to a vertex (using shared_ptr).
-# """
-# function add_particle_to_vertex_in(vertex_ptr, particle_ptr)
-#     return add_shared_particle_in(vertex_ptr, particle_ptr)
-# end
-
-# CONFLICT: This shadows add_shared_particle_out (C++ function)
-# """
-#     add_particle_to_vertex_out(vertex_ptr, particle_ptr) 
-# Add a particle as outgoing from a vertex (using shared_ptr).
-# """
-# function add_particle_to_vertex_out(vertex_ptr, particle_ptr)
-#     return add_shared_particle_out(vertex_ptr, particle_ptr)
-# end
-
-# CONFLICT: This shadows add_shared_vertex_to_event (C++ function)
-# """
-#     add_vertex_to_event(event, vertex_ptr)
-# Add a vertex to an event (using shared_ptr).
-# """
-# function add_vertex_to_event(event, vertex_ptr)
-#     event_ptr = event.cpp_object
-#     return add_shared_vertex_to_event(event_ptr, vertex_ptr)
-# end
-
-# ============================================================================
-# ALTERNATIVE: Using different names for convenience functions
-# ============================================================================
 
 export make_shared_particle, make_shared_vertex, connect_particle_in, connect_particle_out, attach_vertex_to_event
 
@@ -475,49 +418,33 @@ function particle_charge(pdg_id::Integer)
     return get(charge_map, pdg_id, 0)
 end
 
-# ============================================================================
+
 
 export get_production_vertex, get_decay_vertex, get_incoming_particles, get_outgoing_particles
 export get_parent_particles, get_decay_products, get_sibling_particles, traverse_decay_chain
 export find_particle_ancestry
 
-"""
-    get_production_vertex(particle_ptr)
-Get the production vertex of a particle.
-"""
+
+
 function get_production_vertex(particle_ptr)
     try
-        if isa(particle_ptr, Ptr{Nothing})
-            # This is already a raw pointer to shared_ptr
-            return production_vertex(particle_ptr)
-        else
-            # This is a wrapped object
-            return production_vertex(particle_ptr)
-        end
+        return get_production_vertex(particle_ptr)
     catch e
         @warn "Could not get production vertex: $e"
         return C_NULL
     end
 end
 
-"""
-    get_decay_vertex(particle_ptr)  
-Get the decay vertex of a particle.
-"""
 function get_decay_vertex(particle_ptr)
     try
-        if isa(particle_ptr, Ptr{Nothing})
-            return end_vertex(particle_ptr)
-        else
-            return end_vertex(particle_ptr)
-        end
+        return get_end_vertex(particle_ptr)
     catch e
         @warn "Could not get decay vertex: $e"
         return C_NULL
     end
 end
 
-# Replace the navigation functions with simpler versions:
+
 
 """
     get_incoming_particles(vertex_ptr)
@@ -696,11 +623,6 @@ function find_particle_ancestry(particle_ptr, max_depth=10)
     return ancestry
 end
 
-
-
-# ============================================================================
-# Remove all the complicated stuff and just add this:
-
 # Export clean unit constants and set_units!
 export GeV, MeV, mm, cm, set_units!
 
@@ -739,12 +661,6 @@ function set_units!(event, momentum_unit, length_unit)
 end
 
 
-
-export set_event_weights!, get_event_weights
-export particles_size, vertices_size, get_particle_at, get_vertex_at
-export particles_equal
-
-
 # function get_particle_at(event::GenEvent, index::Int)
 #     return get_particle_at(event.cpp_object, index - 1)
 # end
@@ -761,7 +677,11 @@ export particles_equal
 #     return vertices_size(event.cpp_object)
 # end
 
-# Also fix the event weights function:
+
+export set_event_weights!, get_event_weights
+export particles_size, vertices_size, get_particle_at, get_vertex_at
+export particles_equal
+
 function set_event_weights!(event::GenEvent, weights::Vector{Float64})
     set_event_weights(event.cpp_object, weights, length(weights))
 end
@@ -790,24 +710,6 @@ function get_event_weights(event::GenEvent)
     return result
 end
 
-# Fix the navigation functions
-function get_production_vertex(particle_ptr)
-    try
-        return get_production_vertex(particle_ptr)
-    catch e
-        @warn "Could not get production vertex: $e"
-        return C_NULL
-    end
-end
-
-function get_decay_vertex(particle_ptr)
-    try
-        return get_end_vertex(particle_ptr)
-    catch e
-        @warn "Could not get decay vertex: $e"
-        return C_NULL
-    end
-end
 
 # Override Base.in for particle pointer arrays
 function Base.in(particle::Ptr{Nothing}, particles::Vector)
@@ -888,7 +790,7 @@ function read_hepmc_file(filename::String; max_events::Int=-1)
         error("File not found: $filename")
     end
     
-    # println("📖 Reading HepMC3 file: $filename")
+    # println("Reading HepMC3 file: $filename")
     
     # Use your existing C++ function
     events_vector = read_all_events_from_file(filename, max_events)
@@ -900,7 +802,7 @@ function read_hepmc_file(filename::String; max_events::Int=-1)
     n_events = get_events_vector_size(events_vector)
     events = []
     
-    # println("📊 Read $n_events events using HepMC3 native reader")
+    # println("Read $n_events events using HepMC3 native reader")
     
     for i in 0:(n_events-1)
         event_ptr = get_event_from_vector(events_vector, i)
@@ -951,9 +853,9 @@ Simple function to dump final state particles from events.
 function dump_final_state_particles(filename::String; max_events::Int=3)
     events = read_hepmc_file(filename; max_events=max_events)
     
-    println("📁 File: $filename")
-    println("📊 Events: $(length(events))")
-    println()
+    # println("File: $filename")
+    # println("Events: $(length(events))")
+    # println()
     
     for (event_idx, event_ptr) in enumerate(events)
         n_particles = particles_size(event_ptr)
@@ -981,11 +883,6 @@ end
 
 export dump_final_state_particles
 
-
-
-
-
-using CodecZstd
 
 """
     decompress_to_temp(compressed_file)
@@ -1026,3 +923,61 @@ function read_hepmc_file_with_compression(filename::String; max_events::Int=-1)
 end
 
 export read_hepmc_file_with_compression
+
+
+
+
+# ============================================================================
+# WRAPPER METHODS FOR SHARED_PTR COMPATIBILITY
+# ============================================================================
+
+# Create alias for the generated type
+const GenEventAllocated = var"HepMC3!GenEventAllocated"
+export GenEventAllocated
+
+# ============================================================================
+# WRAPPER METHODS FOR TEST COMPATIBILITY (using _raw functions)
+# ============================================================================
+
+# Wrapper methods for GenEventAllocated (the type used in tests)
+function particles_size(event::GenEventAllocated)
+    event_raw_ptr = event.cpp_object  # This is GenEvent*
+    return particles_size_raw(event_raw_ptr)
+end
+
+function vertices_size(event::GenEventAllocated)
+    event_raw_ptr = event.cpp_object
+    return vertices_size_raw(event_raw_ptr)
+end
+
+function get_particle_at(event::GenEventAllocated, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_particle_at_raw(event_raw_ptr, index - 1)  # Convert to 0-based indexing
+end
+
+function get_vertex_at(event::GenEventAllocated, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_vertex_at_raw(event_raw_ptr, index - 1)
+end
+
+# Same for GenEvent type
+function particles_size(event::GenEvent)
+    event_raw_ptr = event.cpp_object
+    return particles_size_raw(event_raw_ptr)
+end
+
+function vertices_size(event::GenEvent)
+    event_raw_ptr = event.cpp_object
+    return vertices_size_raw(event_raw_ptr)
+end
+
+function get_particle_at(event::GenEvent, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_particle_at_raw(event_raw_ptr, index - 1)
+end
+
+function get_vertex_at(event::GenEvent, index::Integer)
+    event_raw_ptr = event.cpp_object
+    return get_vertex_at_raw(event_raw_ptr, index - 1)
+end
+

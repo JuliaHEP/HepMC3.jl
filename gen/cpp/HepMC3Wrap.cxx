@@ -110,7 +110,14 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("vertices_size", &vertices_size);
     mod.method("get_particle_at", &get_particle_at);
     mod.method("get_vertex_at", &get_vertex_at);
-    
+
+
+    // For raw pointers
+    mod.method("particles_size_raw", &particles_size_raw);
+    mod.method("vertices_size_raw", &vertices_size_raw);
+    mod.method("get_particle_at_raw", &get_particle_at_raw);
+    mod.method("get_vertex_at_raw", &get_vertex_at_raw);
+
     // Run info support
     mod.method("create_gen_run_info", &create_gen_run_info);
     mod.method("set_event_run_info", &set_event_run_info);
@@ -121,10 +128,6 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("vertices_equal", &vertices_equal);
     mod.method("get_production_vertex_safe", &get_production_vertex_safe);
     mod.method("get_end_vertex_safe", &get_end_vertex_safe);
-
-
-
-
 
 
     mod.method("read_all_events_from_file", &read_all_events_from_file);

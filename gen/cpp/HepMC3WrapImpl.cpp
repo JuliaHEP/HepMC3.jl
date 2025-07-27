@@ -391,6 +391,44 @@ void free_weights(double* weights) {
     delete[] weights;
 }
 
+
+
+
+// int particles_size(void* event) {
+//     // CHANGE: Input casting from shared_ptr* to GenEvent*
+//     auto e = static_cast<HepMC3::GenEvent*>(event);  // ← Was: std::shared_ptr<HepMC3::GenEvent>*
+//     return e->particles().size();
+// }
+
+// int vertices_size(void* event) {
+//     // CHANGE: Input casting from shared_ptr* to GenEvent*
+//     auto e = static_cast<HepMC3::GenEvent*>(event);  // ← Was: std::shared_ptr<HepMC3::GenEvent>*
+//     return e->vertices().size();
+// }
+
+// void* get_particle_at(void* event, int index) {
+//     // CHANGE: Input casting from shared_ptr* to GenEvent*
+//     auto e = static_cast<HepMC3::GenEvent*>(event);  // ← Was: std::shared_ptr<HepMC3::GenEvent>*
+//     auto particles = e->particles();
+//     if (index >= 0 && index < (int)particles.size()) {
+//         // KEEP: Return shared_ptr for compatibility with JetReconstruction
+//         return new std::shared_ptr<HepMC3::GenParticle>(particles[index]);  // ← KEEP THIS
+//     }
+//     return nullptr;
+// }
+
+// void* get_vertex_at(void* event, int index) {
+//     // CHANGE: Input casting from shared_ptr* to GenEvent*
+//     auto e = static_cast<HepMC3::GenEvent*>(event);  // ← Was: std::shared_ptr<HepMC3::GenEvent>*
+//     auto vertices = e->vertices();
+//     if (index >= 0 && index < (int)vertices.size()) {
+//         // KEEP: Return shared_ptr for compatibility with JetReconstruction
+//         return new std::shared_ptr<HepMC3::GenVertex>(vertices[index]);  // ← KEEP THIS
+//     }
+//     return nullptr;
+// }
+
+
 int particles_size(void* event) {
     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
     return (*e)->particles().size();
@@ -400,22 +438,6 @@ int vertices_size(void* event) {
     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
     return (*e)->vertices().size();
 }
-
-// void* get_particle_at(void* event, int index) {
-//     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
-//     if (index >= 0 && index < (int)(*e)->particles().size()) {
-//         return new std::shared_ptr<HepMC3::GenParticle>((*e)->particles()[index]);
-//     }
-//     return nullptr;
-// }
-
-// void* get_vertex_at(void* event, int index) {
-//     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
-//     if (index >= 0 && index < (int)(*e)->vertices().size()) {
-//         return new std::shared_ptr<HepMC3::GenVertex>((*e)->vertices()[index]);
-//     }
-//     return nullptr;
-// }
 
 void* get_particle_at(void* event, int index) {
     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
@@ -436,6 +458,37 @@ void* get_vertex_at(void* event, int index) {
     }
     return nullptr;
 }
+
+// ADD these new functions for test compatibility (raw GenEvent* input)
+int particles_size_raw(void* event) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);  // Raw pointer
+    return e->particles().size();
+}
+
+int vertices_size_raw(void* event) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);  // Raw pointer
+    return e->vertices().size();
+}
+
+void* get_particle_at_raw(void* event, int index) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);  // Raw pointer
+    auto particles = e->particles();
+    if (index >= 0 && index < (int)particles.size()) {
+        return new std::shared_ptr<HepMC3::GenParticle>(particles[index]);  // Still return shared_ptr
+    }
+    return nullptr;
+}
+
+void* get_vertex_at_raw(void* event, int index) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);  // Raw pointer
+    auto vertices = e->vertices();
+    if (index >= 0 && index < (int)vertices.size()) {
+        return new std::shared_ptr<HepMC3::GenVertex>(vertices[index]);  // Still return shared_ptr
+    }
+    return nullptr;
+}
+
+
 // Run info support
 void* create_gen_run_info() {
     return new std::shared_ptr<HepMC3::GenRunInfo>(std::make_shared<HepMC3::GenRunInfo>());
