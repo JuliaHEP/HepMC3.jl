@@ -1,6 +1,19 @@
 using Test
 using HepMC3
 
+
+        println("Event tree structure:")
+        println("                       p7                         ")
+        println(" p1                   /                           ")
+        println("   \\v1__p2      p5---v4                          ")
+        println("         \\_v3_/       \\                         ")
+        println("         /    \\        p8                        ")
+        println("    v2__p4     \\                                 ")
+        println("   /            p6                                ")
+        println(" p3                                               ")
+        println()
+        
+        
 """
 Exact replication of the Python pyhepmc test for compatibility validation.
 Creates the same event structure with identical physics content.
@@ -146,7 +159,7 @@ end
 
 
 # TESTS
-@testset "Python Compatibility Tests" begin
+@testset "Basic Tree Example" begin
   
     @testset "Event Structure Replication" begin
         evt = make_test_event()
