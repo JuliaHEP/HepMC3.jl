@@ -7,7 +7,7 @@ generation of the wrapper code by analysing the HepMC3 header files.
 
 
 Action Items : 
-1. Automated testing via x86_64 arch systems using CI/CD on github
+1. Automated testing via x86_64 arch systems using CI/CD on github 
 2. More robust test suite 
 3. Adjusting and deploying documentation pages and iterating upon them
 4. Adding Support for ROOT format
