@@ -272,3 +272,195 @@ double get_particle_e(void* particle_ptr) {
     auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
     return (*particle)->momentum().e();
 }
+
+
+// Add these functions after your existing ones:
+
+// Navigation functions
+void* get_production_vertex(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    auto vertex = (*particle)->production_vertex();
+    if (vertex) {
+        return new std::shared_ptr<HepMC3::GenVertex>(vertex);
+    }
+    return nullptr;
+}
+
+void* get_end_vertex(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    auto vertex = (*particle)->end_vertex();
+    if (vertex) {
+        return new std::shared_ptr<HepMC3::GenVertex>(vertex);
+    }
+    return nullptr;
+}
+
+// Vertex property access for raw pointers
+int get_vertex_id(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->id();
+}
+
+int get_vertex_status(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->status();
+}
+
+double get_vertex_x(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->position().x();
+}
+
+double get_vertex_y(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->position().y();
+}
+
+double get_vertex_z(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->position().z();
+}
+
+double get_vertex_t(void* vertex_ptr) {
+    auto* vertex = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex_ptr);
+    return (*vertex)->position().t();
+}
+
+// Pointer equality check
+bool particles_equal(void* p1, void* p2) {
+    auto* particle1 = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(p1);
+    auto* particle2 = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(p2);
+    return (*particle1).get() == (*particle2).get();
+}
+
+// Generated mass functions (for Python compatibility)
+void set_generated_mass(void* particle, double mass) {
+    auto p = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle);
+    (*p)->set_generated_mass(mass);
+}
+
+double get_generated_mass(void* particle) {
+    auto p = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle);
+    return (*p)->generated_mass();
+}
+
+bool is_generated_mass_set(void* particle) {
+    auto p = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle);
+    return (*p)->is_generated_mass_set();
+}
+
+void unset_generated_mass(void* particle) {
+    auto p = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle);
+    (*p)->unset_generated_mass();
+}
+
+// Vertex position functions
+void set_vertex_position(void* vertex, double x, double y, double z, double t) {
+    auto v = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex);
+    (*v)->set_position(HepMC3::FourVector(x, y, z, t));
+}
+
+void* get_vertex_position(void* vertex) {
+    auto v = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(vertex);
+    return new HepMC3::FourVector((*v)->position());
+}
+
+// Event weights
+void set_event_weights(void* event, double* weights, int n_weights) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    std::vector<double> weight_vec(weights, weights + n_weights);
+    e->weights() = weight_vec;
+}
+
+double* get_event_weights(void* event, int* n_weights) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    auto& weights = e->weights();
+    *n_weights = weights.size();
+    
+    // Allocate and copy weights (caller must free)
+    double* result = new double[weights.size()];
+    for (size_t i = 0; i < weights.size(); ++i) {
+        result[i] = weights[i];
+    }
+    return result;
+}
+
+void free_weights(double* weights) {
+    delete[] weights;
+}
+
+// Enhanced event access
+int particles_size(void* event) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    return e->particles().size();
+}
+
+int vertices_size(void* event) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    return e->vertices().size();
+}
+
+void* get_particle_at(void* event, int index) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    if (index >= 0 && index < (int)e->particles().size()) {
+        return new std::shared_ptr<HepMC3::GenParticle>(e->particles()[index]);
+    }
+    return nullptr;
+}
+
+void* get_vertex_at(void* event, int index) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    if (index >= 0 && index < (int)e->vertices().size()) {
+        return new std::shared_ptr<HepMC3::GenVertex>(e->vertices()[index]);
+    }
+    return nullptr;
+}
+
+// Run info support
+void* create_gen_run_info() {
+    return new std::shared_ptr<HepMC3::GenRunInfo>(std::make_shared<HepMC3::GenRunInfo>());
+}
+
+void set_event_run_info(void* event, void* run_info) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    e->set_run_info(*ri);
+}
+
+void set_weight_names(void* run_info, const char** names, int n_names) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    std::vector<std::string> weight_names;
+    for (int i = 0; i < n_names; ++i) {
+        weight_names.push_back(std::string(names[i]));
+    }
+    (*ri)->set_weight_names(weight_names);
+}
+
+
+
+
+// Vertex equality check
+bool vertices_equal(void* v1, void* v2) {
+    auto* vertex1 = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(v1);
+    auto* vertex2 = static_cast<std::shared_ptr<HepMC3::GenVertex>*>(v2);
+    return (*vertex1).get() == (*vertex2).get();
+}
+
+// Safer navigation functions that return consistent pointers
+void* get_production_vertex_safe(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    auto vertex = (*particle)->production_vertex();
+    if (vertex) {
+        return new std::shared_ptr<HepMC3::GenVertex>(vertex);
+    }
+    return nullptr;
+}
+
+void* get_end_vertex_safe(void* particle_ptr) {
+    auto* particle = static_cast<std::shared_ptr<HepMC3::GenParticle>*>(particle_ptr);
+    auto vertex = (*particle)->end_vertex();
+    if (vertex) {
+        return new std::shared_ptr<HepMC3::GenVertex>(vertex);
+    }
+    return nullptr;
+}

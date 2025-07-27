@@ -73,5 +73,54 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("get_particle_py", &get_particle_py);
     mod.method("get_particle_pz", &get_particle_pz);
     mod.method("get_particle_e", &get_particle_e);
+
+
+    // Navigation functions
+    mod.method("get_production_vertex", &get_production_vertex);
+    mod.method("get_end_vertex", &get_end_vertex);
+    
+    // Vertex property access
+    mod.method("get_vertex_id", &get_vertex_id);
+    mod.method("get_vertex_status", &get_vertex_status);
+    mod.method("get_vertex_x", &get_vertex_x);
+    mod.method("get_vertex_y", &get_vertex_y);
+    mod.method("get_vertex_z", &get_vertex_z);
+    mod.method("get_vertex_t", &get_vertex_t);
+    
+    // Pointer equality
+    mod.method("particles_equal", &particles_equal);
+    
+    // Generated mass functions
+    mod.method("set_generated_mass", &set_generated_mass);
+    mod.method("get_generated_mass", &get_generated_mass);
+    mod.method("is_generated_mass_set", &is_generated_mass_set);
+    mod.method("unset_generated_mass", &unset_generated_mass);
+    
+    // Vertex positioning
+    mod.method("set_vertex_position", &set_vertex_position);
+    mod.method("get_vertex_position", &get_vertex_position);
+    
+    // Event weights
+    mod.method("set_event_weights", &set_event_weights);
+    mod.method("get_event_weights", &get_event_weights);
+    mod.method("free_weights", &free_weights);
+    
+    // Enhanced event access
+    mod.method("particles_size", &particles_size);
+    mod.method("vertices_size", &vertices_size);
+    mod.method("get_particle_at", &get_particle_at);
+    mod.method("get_vertex_at", &get_vertex_at);
+    
+    // Run info support
+    mod.method("create_gen_run_info", &create_gen_run_info);
+    mod.method("set_event_run_info", &set_event_run_info);
+    mod.method("set_weight_names", &set_weight_names);
+
+
+    // Add vertex equality
+    mod.method("vertices_equal", &vertices_equal);
+    mod.method("get_production_vertex_safe", &get_production_vertex_safe);
+    mod.method("get_end_vertex_safe", &get_end_vertex_safe);
+
 }
 // No JLCXX_MODULE here - that's handled by the generated code

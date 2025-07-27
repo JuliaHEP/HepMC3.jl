@@ -3,6 +3,7 @@ using HepMC3
 
 # Test organization
 const TEST_FILES = [
+    "test_basic.jl",
     "test_fourvector.jl",
     "test_particles.jl", 
     "test_vertices.jl",

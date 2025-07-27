@@ -89,6 +89,52 @@ extern "C" {
     double get_particle_pz(void* particle_ptr);
     double get_particle_e(void* particle_ptr);
 
+    // Navigation functions
+    void* get_production_vertex(void* particle_ptr);
+    void* get_end_vertex(void* particle_ptr);
+    
+    // Vertex property access
+    int get_vertex_id(void* vertex_ptr);
+    int get_vertex_status(void* vertex_ptr);
+    double get_vertex_x(void* vertex_ptr);
+    double get_vertex_y(void* vertex_ptr);
+    double get_vertex_z(void* vertex_ptr);
+    double get_vertex_t(void* vertex_ptr);
+    
+    // Pointer equality
+    bool particles_equal(void* p1, void* p2);
+    
+    // Generated mass functions
+    void set_generated_mass(void* particle, double mass);
+    double get_generated_mass(void* particle);
+    bool is_generated_mass_set(void* particle);
+    void unset_generated_mass(void* particle);
+    
+    // Vertex positioning
+    void set_vertex_position(void* vertex, double x, double y, double z, double t);
+    void* get_vertex_position(void* vertex);
+    
+    // Event weights
+    void set_event_weights(void* event, double* weights, int n_weights);
+    double* get_event_weights(void* event, int* n_weights);
+    void free_weights(double* weights);
+    
+    // Enhanced event access
+    int particles_size(void* event);
+    int vertices_size(void* event);
+    void* get_particle_at(void* event, int index);
+    void* get_vertex_at(void* event, int index);
+    
+    // Run info support
+    void* create_gen_run_info();
+    void set_event_run_info(void* event, void* run_info);
+    void set_weight_names(void* run_info, const char** names, int n_names);
+
+    // Vertex equality and safe navigation functions
+    bool vertices_equal(void* v1, void* v2);
+    void* get_production_vertex_safe(void* particle_ptr);
+    void* get_end_vertex_safe(void* particle_ptr);
+
 }
 
 #endif

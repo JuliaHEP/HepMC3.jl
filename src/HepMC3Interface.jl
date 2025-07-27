@@ -1,3 +1,9 @@
+# Exports for C++ functions 
+export get_generated_mass, is_generated_mass_set, set_generated_mass, unset_generated_mass
+export set_vertex_position, get_vertex_position
+export get_vertex_id, get_vertex_x, get_vertex_y, get_vertex_z, get_vertex_t
+export vertices_equal
+
 # Create convenient aliases for the CxxWrap-generated types
 const FourVector = var"HepMC3!FourVector"
 const GenEvent = var"HepMC3!GenEvent"  
@@ -293,29 +299,29 @@ function get_particle_properties(particle_ptr)
         # Handle different types of particle representations
         if isa(particle_ptr, Ptr{Nothing})
             # Raw pointer - use our new manual wrapper functions
-            pdg = HepMC3.get_particle_pdg_id(particle_ptr)
-            stat = HepMC3.get_particle_status(particle_ptr)
-            id_val = HepMC3.get_particle_id(particle_ptr)
+            pdg = get_particle_pdg_id(particle_ptr)
+            stat = get_particle_status(particle_ptr)
+            id_val = get_particle_id(particle_ptr)
             
             # Get momentum components directly
-            px_val = HepMC3.get_particle_px(particle_ptr)
-            py_val = HepMC3.get_particle_py(particle_ptr)
-            pz_val = HepMC3.get_particle_pz(particle_ptr)
-            e_val = HepMC3.get_particle_e(particle_ptr)
+            px_val = get_particle_px(particle_ptr)
+            py_val = get_particle_py(particle_ptr)
+            pz_val = get_particle_pz(particle_ptr)
+            e_val = get_particle_e(particle_ptr)
             
             mom = (px = px_val, py = py_val, pz = pz_val, e = e_val)
         else
             # Wrapped object - use normal methods
-            pdg = HepMC3.pdg_id(particle_ptr)
-            stat = HepMC3.status(particle_ptr)
-            id_val = HepMC3.id(particle_ptr)
+            pdg = pdg_id(particle_ptr)
+            stat = status(particle_ptr)
+            id_val = id(particle_ptr)
             
-            mom_ptr = HepMC3.momentum(particle_ptr)
+            mom_ptr = momentum(particle_ptr)
             mom = (
-                px = HepMC3.px(mom_ptr), 
-                py = HepMC3.py(mom_ptr), 
-                pz = HepMC3.pz(mom_ptr), 
-                e = HepMC3.e(mom_ptr)
+                px = px(mom_ptr), 
+                py = py(mom_ptr), 
+                pz = pz(mom_ptr), 
+                e = e(mom_ptr)
             )
         end
         
@@ -355,6 +361,8 @@ end
     get_vertex_properties(vertex_ptr)
 Get comprehensive properties of a vertex.
 """
+# Replace get_vertex_properties function:
+
 function get_vertex_properties(vertex_ptr)
     if vertex_ptr == C_NULL
         return (
@@ -365,19 +373,32 @@ function get_vertex_properties(vertex_ptr)
     end
     
     try
-        # Use explicit type annotation to resolve ambiguity
-        vertex_id = HepMC3.id(vertex_ptr)::Int
-        vertex_status = try 
-            HepMC3.status(vertex_ptr)::Int 
-        catch 
-            -1 
-        end
-        
-        vertex_position = try
-            pos = HepMC3.position(vertex_ptr)
-            (x = HepMC3.x(pos), y = HepMC3.y(pos), z = HepMC3.z(pos), t = HepMC3.t(pos))
-        catch
-            (x = 0.0, y = 0.0, z = 0.0, t = 0.0)
+        if isa(vertex_ptr, Ptr{Nothing})
+            # Raw pointer - use manual wrapper functions
+            vertex_id = get_vertex_id(vertex_ptr)
+            vertex_status = get_vertex_status(vertex_ptr)
+            
+            vertex_position = (
+                x = get_vertex_x(vertex_ptr),
+                y = get_vertex_y(vertex_ptr),
+                z = get_vertex_z(vertex_ptr),
+                t = get_vertex_t(vertex_ptr)
+            )
+        else
+            # Wrapped object - use normal methods
+            vertex_id = id(vertex_ptr)
+            vertex_status = try 
+                status(vertex_ptr)
+            catch 
+                -1 
+            end
+            
+            vertex_position = try
+                pos = position(vertex_ptr)
+                (x = x(pos), y = y(pos), z = z(pos), t = t(pos))
+            catch
+                (x = 0.0, y = 0.0, z = 0.0, t = 0.0)
+            end
         end
         
         return (
@@ -395,6 +416,7 @@ function get_vertex_properties(vertex_ptr)
     end
 end
 
+
 """
     particle_mass(particle_ptr)
 Calculate the invariant mass of a particle from its four-momentum.
@@ -408,7 +430,8 @@ end
     particle_charge(pdg_id::Int)
 Get the electric charge of a particle from its PDG ID.
 """
-function particle_charge(pdg_id::Int)
+
+function particle_charge(pdg_id::Integer)
     # Basic charge lookup for common particles
     charge_map = Dict(
         11 => -1,    # electron
@@ -446,8 +469,15 @@ Get the production vertex of a particle.
 """
 function get_production_vertex(particle_ptr)
     try
-        return production_vertex(particle_ptr)
-    catch
+        if isa(particle_ptr, Ptr{Nothing})
+            # This is already a raw pointer to shared_ptr
+            return production_vertex(particle_ptr)
+        else
+            # This is a wrapped object
+            return production_vertex(particle_ptr)
+        end
+    catch e
+        @warn "Could not get production vertex: $e"
         return C_NULL
     end
 end
@@ -458,8 +488,13 @@ Get the decay vertex of a particle.
 """
 function get_decay_vertex(particle_ptr)
     try
-        return end_vertex(particle_ptr)
-    catch
+        if isa(particle_ptr, Ptr{Nothing})
+            return end_vertex(particle_ptr)
+        else
+            return end_vertex(particle_ptr)
+        end
+    catch e
+        @warn "Could not get decay vertex: $e"
         return C_NULL
     end
 end
@@ -546,22 +581,49 @@ function get_decay_products(particle_ptr)
     return products
 end
 
-"""
-    get_sibling_particles(particle_ptr)
-Get all sibling particles (particles from same production vertex).
-"""
+
+function Base.:(==)(v1::Ptr{Nothing}, v2::Ptr{Nothing})
+    # Handle NULL pointers with identity comparison (no recursion)
+    if v1 === C_NULL && v2 === C_NULL
+        return true
+    elseif v1 === C_NULL || v2 === C_NULL
+        return false
+    end
+    
+    # Both pointers are non-NULL, try semantic equality
+    try
+        # First try vertices_equal (for vertex pointers)
+        return vertices_equal(v1, v2)
+    catch e1
+        try
+            # Then try particles_equal (for particle pointers)  
+            return particles_equal(v1, v2)
+        catch e2
+            # Fall back to address comparison as last resort
+            return v1 === v2
+        end
+    end
+end
+
+
+# Fix the get_sibling_particles function:
 function get_sibling_particles(particle_ptr)
     siblings = []
     prod_vertex = get_production_vertex(particle_ptr)
     
     if prod_vertex != C_NULL
         all_products = get_outgoing_particles(prod_vertex)
-        # Filter out the particle itself
-        siblings = filter(p -> p != particle_ptr, all_products)
+        # Use proper equality check for filtering
+        for p in all_products
+            if !particles_equal(particle_ptr, p)
+                push!(siblings, p)
+            end
+        end
     end
     
     return siblings
 end
+
 
 """
     traverse_decay_chain(particle_ptr, max_depth=10)
@@ -656,4 +718,121 @@ function set_units!(event, momentum_unit, length_unit)
     len_unit = length_unit isa Symbol ? UNIT_MAP[length_unit] : length_unit
     
     set_units(event, mom_unit, len_unit)
+end
+
+
+
+export set_event_weights!, get_event_weights
+export particles_size, vertices_size, get_particle_at, get_vertex_at
+export particles_equal
+
+# Generated mass support
+
+
+
+function get_particle_at(event::GenEvent, index::Int)
+    return get_particle_at(event.cpp_object, index - 1)
+end
+
+function get_vertex_at(event::GenEvent, index::Int)
+    return get_vertex_at(event.cpp_object, index - 1)
+end
+
+function particles_size(event::GenEvent)
+    return particles_size(event.cpp_object)
+end
+
+function vertices_size(event::GenEvent)
+    return vertices_size(event.cpp_object)
+end
+
+# Also fix the event weights function:
+function set_event_weights!(event::GenEvent, weights::Vector{Float64})
+    set_event_weights(event.cpp_object, weights, length(weights))
+end
+
+
+# Replace the get_event_weights function:
+
+function get_event_weights(event::GenEvent)
+    n_weights = Ref{Int32}(0)
+    weights_ptr = get_event_weights(event.cpp_object, n_weights)
+    
+    if weights_ptr == C_NULL || n_weights[] == 0
+        return Float64[]
+    end
+    
+    # Convert CxxPtr to regular Ptr for unsafe_wrap
+    raw_ptr = Ptr{Float64}(weights_ptr.cpp_object)
+    
+    # Copy weights to Julia array
+    weights = unsafe_wrap(Array, raw_ptr, n_weights[])
+    result = copy(weights)
+    
+    # Free C++ allocated memory
+    free_weights(weights_ptr)
+    
+    return result
+end
+
+# Fix the navigation functions
+function get_production_vertex(particle_ptr)
+    try
+        return get_production_vertex(particle_ptr)
+    catch e
+        @warn "Could not get production vertex: $e"
+        return C_NULL
+    end
+end
+
+function get_decay_vertex(particle_ptr)
+    try
+        return get_end_vertex(particle_ptr)
+    catch e
+        @warn "Could not get decay vertex: $e"
+        return C_NULL
+    end
+end
+
+# Override Base.in for particle pointer arrays
+function Base.in(particle::Ptr{Nothing}, particles::Vector)
+    for p in particles
+        if isa(p, Ptr{Nothing}) && particles_equal(particle, p)
+            return true
+        end
+    end
+    return false
+end
+
+
+
+export create_run_info, add_tool_info!, set_weight_names!
+
+"""
+    create_run_info()
+Create a new GenRunInfo object (alias for existing function).
+"""
+function create_run_info()
+    return create_gen_run_info()
+end
+
+"""
+    set_weight_names!(run_info, names)
+Set the weight names for a RunInfo object.
+"""
+function set_weight_names!(run_info, names::Vector{String})
+    c_names = [pointer(name) for name in names]
+    set_weight_names(run_info, c_names, length(names))
+end
+
+"""
+    add_tool_info!(run_info, name, version, description)
+Add tool information to RunInfo (if you want full pyhepmc compatibility).
+For now, this is a placeholder since ToolInfo might need C++ implementation.
+"""
+function add_tool_info!(run_info, name::String, version::String, description::String)
+    # For now, just log that tool info was requested
+    println("ToolInfo requested: $name $version - $description")
+    # This could be implemented in C++ later if needed
+    return nothing
 end
