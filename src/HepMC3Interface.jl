@@ -289,10 +289,7 @@ Returns a NamedTuple with all particle properties.
 function get_particle_properties(particle_ptr)
     if particle_ptr == C_NULL
         @warn "Particle pointer is NULL"
-        return (
-            pdg_id = 0, status = 0, momentum = (px = 0.0, py = 0.0, pz = 0.0, e = 0.0),
-            pt = 0.0, eta = 0.0, phi = 0.0, mass = 0.0, id = 0
-        )
+        return nothing
     end
     
     try
@@ -325,20 +322,44 @@ function get_particle_properties(particle_ptr)
             )
         end
         
-        # Calculate derived quantities
-        pt = sqrt(mom.px^2 + mom.py^2)
-        eta = mom.pz != 0 ? 0.5 * log((mom.e + mom.pz)/(mom.e - mom.pz)) : 0.0
-        phi = atan(mom.py, mom.px)
-        mass = sqrt(max(0, mom.e^2 - mom.px^2 - mom.py^2 - mom.pz^2))
+        # Validate momentum components
+        if !isfinite(mom.px) || !isfinite(mom.py) || !isfinite(mom.pz) || !isfinite(mom.e)
+            @warn "Invalid momentum components: px=$(mom.px), py=$(mom.py), pz=$(mom.pz), E=$(mom.e)"
+            return nothing
+        end
+        
+        # Check for valid energy (must be positive)
+        if mom.e <= 0
+            @warn "Invalid energy: E=$(mom.e) <= 0"
+            return nothing
+        end
+        
+        # Calculate derived quantities safely
+        pt_val = sqrt(mom.px^2 + mom.py^2)
+        p_total = sqrt(mom.px^2 + mom.py^2 + mom.pz^2)
+        
+        # Safe mass calculation
+        mass_squared = mom.e^2 - p_total^2
+        mass_val = mass_squared >= 0 ? sqrt(mass_squared) : 0.0
+        
+        # Safe eta/rapidity calculation (avoid log of negative/zero)
+        if pt_val > 0 && mom.e + mom.pz > 0 && mom.e - mom.pz > 0
+            eta_val = 0.5 * log((mom.e + mom.pz) / (mom.e - mom.pz))
+        else
+            eta_val = 0.0
+        end
+        
+        # Safe phi calculation
+        phi_val = pt_val > 0 ? atan(mom.py, mom.px) : 0.0
         
         return (
             pdg_id = pdg,
             status = stat,
             momentum = mom,
-            pt = pt,
-            eta = eta,
-            phi = phi,
-            mass = mass,
+            pt = pt_val,
+            eta = eta_val,
+            phi = phi_val,
+            mass = mass_val,
             id = id_val
         )
         
@@ -347,11 +368,8 @@ function get_particle_properties(particle_ptr)
         @error "Particle pointer: $particle_ptr"
         @error "Particle type: $(typeof(particle_ptr))"
         
-        # Return safe defaults
-        return (
-            pdg_id = 0, status = 0, momentum = (px = 0.0, py = 0.0, pz = 0.0, e = 0.0),
-            pt = 0.0, eta = 0.0, phi = 0.0, mass = 0.0, id = 0
-        )
+        # Return nothing instead of invalid defaults
+        return nothing
     end
 end
 
@@ -726,25 +744,22 @@ export set_event_weights!, get_event_weights
 export particles_size, vertices_size, get_particle_at, get_vertex_at
 export particles_equal
 
-# Generated mass support
 
+# function get_particle_at(event::GenEvent, index::Int)
+#     return get_particle_at(event.cpp_object, index - 1)
+# end
 
+# function get_vertex_at(event::GenEvent, index::Int)
+#     return get_vertex_at(event.cpp_object, index - 1)
+# end
 
-function get_particle_at(event::GenEvent, index::Int)
-    return get_particle_at(event.cpp_object, index - 1)
-end
+# function particles_size(event::GenEvent)
+#     return particles_size(event.cpp_object)
+# end
 
-function get_vertex_at(event::GenEvent, index::Int)
-    return get_vertex_at(event.cpp_object, index - 1)
-end
-
-function particles_size(event::GenEvent)
-    return particles_size(event.cpp_object)
-end
-
-function vertices_size(event::GenEvent)
-    return vertices_size(event.cpp_object)
-end
+# function vertices_size(event::GenEvent)
+#     return vertices_size(event.cpp_object)
+# end
 
 # Also fix the event weights function:
 function set_event_weights!(event::GenEvent, weights::Vector{Float64})
@@ -836,3 +851,178 @@ function add_tool_info!(run_info, name::String, version::String, description::St
     # This could be implemented in C++ later if needed
     return nothing
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Add to HepMC3Interface.jl:
+
+using CodecZlib, CodecZstd  # You'll need to add these dependencies
+
+export read_hepmc_file, get_final_state_particles 
+
+# C++ exports
+export read_all_events_from_file, get_events_vector_size, get_event_from_vector, delete_events_vector
+
+
+"""
+    read_hepmc_file(filename; max_events=-1)
+Read an uncompressed HepMC3 ASCII file using native HepMC3 reader.
+"""
+function read_hepmc_file(filename::String; max_events::Int=-1)
+    if !isfile(filename)
+        error("File not found: $filename")
+    end
+    
+    # println("📖 Reading HepMC3 file: $filename")
+    
+    # Use your existing C++ function
+    events_vector = read_all_events_from_file(filename, max_events)
+    
+    if events_vector == C_NULL
+        error("HepMC3 reader failed to read file: $filename")
+    end
+    
+    n_events = get_events_vector_size(events_vector)
+    events = []
+    
+    # println("📊 Read $n_events events using HepMC3 native reader")
+    
+    for i in 0:(n_events-1)
+        event_ptr = get_event_from_vector(events_vector, i)
+        if event_ptr != C_NULL
+            push!(events, event_ptr)
+        end
+    end
+    
+    # Clean up C++ vector
+    delete_events_vector(events_vector)
+    
+    return events
+end
+
+"""
+    get_final_state_particles(event_ptr)
+Extract all final state particles (status == 1) from an event.
+Returns a vector of particle pointers.
+"""
+function get_final_state_particles(event_ptr)
+    final_state_particles = []
+    n_particles = particles_size(event_ptr)
+
+    if n_particles <= 0
+        return final_state_particles 
+    end
+    
+    for i in 1:n_particles
+        particle_ptr = get_particle_at(event_ptr, i)
+        if particle_ptr != C_NULL
+            props = get_particle_properties(particle_ptr)
+            
+            # Final state particles have status == 1
+            if props.status == 1
+                push!(final_state_particles, particle_ptr)
+            end
+        end
+    end
+    
+    return final_state_particles
+end
+
+
+"""
+    dump_final_state_particles(filename; max_events=3)
+Simple function to dump final state particles from events.
+"""
+function dump_final_state_particles(filename::String; max_events::Int=3)
+    events = read_hepmc_file(filename; max_events=max_events)
+    
+    println("📁 File: $filename")
+    println("📊 Events: $(length(events))")
+    println()
+    
+    for (event_idx, event_ptr) in enumerate(events)
+        n_particles = particles_size(event_ptr)
+        
+        # Skip empty events
+        if n_particles <= 0
+            println("Event $event_idx: EMPTY (skipping)")
+            continue
+        end
+        
+        final_state = get_final_state_particles(event_ptr)
+        
+        println("Event $event_idx: $(length(final_state)) final state particles")
+        println("Final state particles:")
+        
+        for (i, particle) in enumerate(final_state)
+            props = get_particle_properties(particle)
+            println("  [$i] PDG=$(props.pdg_id), pt=$(round(props.pt, digits=2)), " *
+                    "p=($(round(props.momentum.px, digits=2)), $(round(props.momentum.py, digits=2)), " *
+                    "$(round(props.momentum.pz, digits=2)), $(round(props.momentum.e, digits=2)))")
+        end
+        println()
+    end
+end
+
+export dump_final_state_particles
+
+
+
+
+
+using CodecZstd
+
+"""
+    decompress_to_temp(compressed_file)
+Decompress a .zst file to a temporary file for HepMC3 to read.
+"""
+function decompress_to_temp(compressed_file::String)
+    temp_file = tempname() * ".hepmc3"
+    
+    # Decompress
+    open(compressed_file, "r") do input
+        zstd_stream = ZstdDecompressorStream(input)
+        open(temp_file, "w") do output
+            write(output, read(zstd_stream))
+        end
+    end
+    
+    return temp_file
+end
+
+"""
+    read_hepmc_file_with_compression(filename; max_events=-1)
+Read HepMC3 file with automatic compression detection.
+"""
+function read_hepmc_file_with_compression(filename::String; max_events::Int=-1)
+    if endswith(filename, ".zst")
+        # Decompress to temp file
+        temp_file = decompress_to_temp(filename)
+        try
+            return read_hepmc_file(temp_file; max_events=max_events)
+        finally
+            # Clean up temp file
+            rm(temp_file, force=true)
+        end
+    else
+        # Read directly
+        return read_hepmc_file(filename; max_events=max_events)
+    end
+end
+
+export read_hepmc_file_with_compression

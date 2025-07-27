@@ -8,6 +8,8 @@
 #include "HepMC3/GenPdfInfo.h" 
 #include "HepMC3/GenHeavyIon.h"
 #include "HepMC3/Attribute.h"
+#include <vector>
+#include <memory>
 
 using namespace HepMC3;
 
@@ -389,33 +391,51 @@ void free_weights(double* weights) {
     delete[] weights;
 }
 
-// Enhanced event access
 int particles_size(void* event) {
-    auto e = static_cast<HepMC3::GenEvent*>(event);
-    return e->particles().size();
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
+    return (*e)->particles().size();
 }
 
 int vertices_size(void* event) {
-    auto e = static_cast<HepMC3::GenEvent*>(event);
-    return e->vertices().size();
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
+    return (*e)->vertices().size();
 }
 
+// void* get_particle_at(void* event, int index) {
+//     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
+//     if (index >= 0 && index < (int)(*e)->particles().size()) {
+//         return new std::shared_ptr<HepMC3::GenParticle>((*e)->particles()[index]);
+//     }
+//     return nullptr;
+// }
+
+// void* get_vertex_at(void* event, int index) {
+//     auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);  // ← Use shared_ptr
+//     if (index >= 0 && index < (int)(*e)->vertices().size()) {
+//         return new std::shared_ptr<HepMC3::GenVertex>((*e)->vertices()[index]);
+//     }
+//     return nullptr;
+// }
+
 void* get_particle_at(void* event, int index) {
-    auto e = static_cast<HepMC3::GenEvent*>(event);
-    if (index >= 0 && index < (int)e->particles().size()) {
-        return new std::shared_ptr<HepMC3::GenParticle>(e->particles()[index]);
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
+    auto particles = (*e)->particles();
+    if (index >= 0 && index < (int)particles.size()) {
+        // Return shared_ptr for compatibility
+        return new std::shared_ptr<HepMC3::GenParticle>(particles[index]);
     }
     return nullptr;
 }
 
 void* get_vertex_at(void* event, int index) {
-    auto e = static_cast<HepMC3::GenEvent*>(event);
-    if (index >= 0 && index < (int)e->vertices().size()) {
-        return new std::shared_ptr<HepMC3::GenVertex>(e->vertices()[index]);
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
+    auto vertices = (*e)->vertices();
+    if (index >= 0 && index < (int)vertices.size()) {
+        // Return shared_ptr for compatibility
+        return new std::shared_ptr<HepMC3::GenVertex>(vertices[index]);
     }
     return nullptr;
 }
-
 // Run info support
 void* create_gen_run_info() {
     return new std::shared_ptr<HepMC3::GenRunInfo>(std::make_shared<HepMC3::GenRunInfo>());
@@ -463,4 +483,48 @@ void* get_end_vertex_safe(void* particle_ptr) {
         return new std::shared_ptr<HepMC3::GenVertex>(vertex);
     }
     return nullptr;
+}
+
+
+
+void* read_all_events_from_file(const char* filename, int max_events) {
+    auto* events = new std::vector<std::shared_ptr<HepMC3::GenEvent>>();
+    
+    HepMC3::ReaderAscii reader(filename);
+    if (reader.failed()) {
+        delete events;
+        return nullptr;
+    }
+    
+    int event_count = 0;
+    while (!reader.failed() && (max_events < 0 || event_count < max_events)) {
+        auto event = std::make_shared<HepMC3::GenEvent>();
+        if (reader.read_event(*event)) {
+            events->push_back(event);
+            event_count++;
+        } else {
+            break;
+        }
+    }
+    
+    return events;
+}
+
+// Get event from vector
+void* get_event_from_vector(void* events_vector, int index) {
+    auto* events = static_cast<std::vector<std::shared_ptr<HepMC3::GenEvent>>*>(events_vector);
+    if (index >= 0 && index < events->size()) {
+        return new std::shared_ptr<HepMC3::GenEvent>((*events)[index]);
+    }
+    return nullptr;
+}
+
+int get_events_vector_size(void* events_vector) {
+    auto* events = static_cast<std::vector<std::shared_ptr<HepMC3::GenEvent>>*>(events_vector);
+    return events->size();
+}
+
+void delete_events_vector(void* events_vector) {
+    auto* events = static_cast<std::vector<std::shared_ptr<HepMC3::GenEvent>>*>(events_vector);
+    delete events;
 }

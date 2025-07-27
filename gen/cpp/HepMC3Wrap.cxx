@@ -122,5 +122,15 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("get_production_vertex_safe", &get_production_vertex_safe);
     mod.method("get_end_vertex_safe", &get_end_vertex_safe);
 
+
+
+
+
+
+    mod.method("read_all_events_from_file", &read_all_events_from_file);
+    mod.method("get_event_from_vector", &get_event_from_vector);
+    mod.method("get_events_vector_size", &get_events_vector_size);
+    mod.method("delete_events_vector", &delete_events_vector);
+
 }
 // No JLCXX_MODULE here - that's handled by the generated code

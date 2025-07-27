@@ -135,6 +135,13 @@ extern "C" {
     void* get_production_vertex_safe(void* particle_ptr);
     void* get_end_vertex_safe(void* particle_ptr);
 
+
+
+
+    void* read_all_events_from_file(const char* filename, int max_events);
+    void* get_event_from_vector(void* events_vector, int index);
+    int get_events_vector_size(void* events_vector);
+    void delete_events_vector(void* events_vector);
 }
 
 #endif

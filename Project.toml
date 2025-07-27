@@ -3,6 +3,8 @@ uuid = "c417cfb8-6006-4e9f-8eac-22c8d6053590"
 version = "0.1.0"
 
 [deps]
+CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
+CodecZstd = "6b39b394-51ab-5f42-8807-6242bab2b4c2"
 CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 HepMC3_jll = "b85c3e40-22db-5268-bacb-02bd65cb4e01"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
