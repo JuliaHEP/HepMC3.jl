@@ -291,9 +291,167 @@ event = build_event_template()
 println("Event built: $(particles_size(event)) particles")
 ```
 
+## JetReconstruction Integration
+
+HepMC3.jl can be used with [JetReconstruction.jl](https://github.com/JuliaHEP/JetReconstruction.jl) by converting HepMC3 particles to `PseudoJet` objects. The `PseudoJet` struct is a generic data structure that can be used for both proton-proton (pp) and electron-positron (e⁺e⁻) events. The difference lies in the jet reconstruction algorithm used:
+
+- **For pp events**: Use algorithms like `JetAlgorithm.AntiKt`, `JetAlgorithm.Kt`, or `JetAlgorithm.CA` (Cambridge/Aachen)
+- **For e⁺e⁻ events**: Use algorithms like `JetAlgorithm.Durham` or `JetAlgorithm.EEKt` (generalized e⁺e⁻ kₜ)
+
+This example demonstrates reading HepMC3 files and converting final state particles to the `PseudoJet` format:
+
+```julia
+using HepMC3, JetReconstruction
+
+"""
+    read_final_state_particles(filename; max_events=-1)
+Read HepMC3 file and return JetReconstruction-compatible PseudoJet events.
+This function extracts final state particles (status == 1) from HepMC3 events
+and converts them to PseudoJet format for jet reconstruction.
+"""
+function read_final_state_particles(filename::String; max_events::Int=-1)
+    # Read events using HepMC3 interface (handles compressed files automatically)
+    events = read_hepmc_file_with_compression(filename; max_events=max_events)
+
+    # Convert to PseudoJets for JetReconstruction
+    pseudojet_events = Vector{PseudoJet}[]
+
+    events_processed = 0
+    for (event_idx, event_ptr) in enumerate(events)
+        # Extract final state particles (status == 1)
+        final_state = get_final_state_particles(event_ptr)
+
+        # Skip empty events
+        if isempty(final_state)
+            continue
+        end
+
+        # Convert HepMC3 particles to PseudoJets
+        input_particles = PseudoJet[]
+        particle_index = 1
+
+        for particle in final_state
+            props = get_particle_properties(particle)
+
+            # Create PseudoJet from four-momentum
+            pseudojet = PseudoJet(
+                props.momentum.px,  # px
+                props.momentum.py,  # py
+                props.momentum.pz,  # pz
+                props.momentum.e;   # E
+                cluster_hist_index = particle_index
+            )
+            push!(input_particles, pseudojet)
+            particle_index += 1
+        end
+
+        push!(pseudojet_events, input_particles)
+        events_processed += 1
+
+        # Respect max_events limit
+        if max_events > 0 && events_processed >= max_events
+            break
+        end
+    end
+
+    @info "Processed $(length(pseudojet_events)) events from $filename"
+    return pseudojet_events
+end
+
+# Example: Read events and perform jet reconstruction
+filename = "events.hepmc3.zst"  # Can be compressed or uncompressed
+
+# Read final state particles
+pseudojet_events = read_final_state_particles(filename; max_events=100)
+
+# Perform jet reconstruction on first event
+if !isempty(pseudojet_events)
+    event_particles = pseudojet_events[1]
+
+    # For pp events: use anti-kT algorithm
+    clusterseq_pp = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.AntiKt,
+                                     R = 0.4)
+    jets_pp = inclusive_jets(clusterseq_pp, ptmin = 5.0)
+
+    # For e⁺e⁻ events: use Durham algorithm (R parameter is ignored)
+    clusterseq_ee = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.Durham)
+    jets_ee = inclusive_jets(clusterseq_ee, ptmin = 5.0)
+
+    println("Event 1: $(length(event_particles)) particles")
+    println("PP jets (anti-kT, R=0.4): $(length(jets_pp)) jets with pT > 5 GeV")
+    println("e⁺e⁻ jets (Durham): $(length(jets_ee)) jets with pT > 5 GeV")
+end
+```
+
+### Complete Pipeline Example
+
+A complete workflow from HepMC3 file to jet analysis. Note that the same `PseudoJet` conversion works for both pp and e⁺e⁻ events; only the algorithm differs:
+
+```julia
+using HepMC3, JetReconstruction
+
+# For pp events
+function analyze_pp_jets_from_hepmc(filename::String; max_events::Int=10, R::Float64=0.4, ptmin::Float64=5.0)
+    pseudojet_events = read_final_state_particles(filename; max_events=max_events)
+
+    println("Analyzing $(length(pseudojet_events)) pp events")
+    println("=" ^ 60)
+
+    for (event_idx, event_particles) in enumerate(pseudojet_events)
+        # Use anti-kT for pp events
+        clusterseq = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.AntiKt,
+                                     R = R)
+        jets = inclusive_jets(clusterseq, ptmin = ptmin)
+
+        println("Event $event_idx: $(length(jets)) jets (anti-kT, R=$R)")
+    end
+end
+
+# For e⁺e⁻ events
+function analyze_ee_jets_from_hepmc(filename::String; max_events::Int=10, ptmin::Float64=5.0)
+    pseudojet_events = read_final_state_particles(filename; max_events=max_events)
+
+    println("Analyzing $(length(pseudojet_events)) e⁺e⁻ events")
+    println("=" ^ 60)
+
+    for (event_idx, event_particles) in enumerate(pseudojet_events)
+        # Use Durham algorithm for e⁺e⁻ events (R parameter is ignored)
+        clusterseq = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.Durham)
+        jets = inclusive_jets(clusterseq, ptmin = ptmin)
+
+        println("Event $event_idx: $(length(jets)) jets (Durham)")
+    end
+end
+
+# Run analysis
+analyze_pp_jets_from_hepmc("pp_events.hepmc3.zst"; max_events=10, R=0.4, ptmin=5.0)
+analyze_ee_jets_from_hepmc("ee_events.hepmc3.zst"; max_events=10, ptmin=5.0)
+```
+
+### Key Points
+
+1. **Final State Extraction**: Use `get_final_state_particles()` to extract only stable particles (status == 1) from HepMC3 events.
+
+2. **PseudoJet Conversion**: The `PseudoJet` struct is a generic data structure that works for both pp and e⁺e⁻ events. Convert HepMC3 particle four-momenta to `PseudoJet` objects using the same conversion function regardless of event type.
+
+3. **Algorithm Selection**: The choice of jet reconstruction algorithm depends on the event type:
+   - **pp events**: Use `JetAlgorithm.AntiKt`, `JetAlgorithm.Kt`, or `JetAlgorithm.CA` with an `R` parameter
+   - **e⁺e⁻ events**: Use `JetAlgorithm.Durham` or `JetAlgorithm.EEKt` (the `R` parameter is ignored for Durham)
+
+4. **Compressed Files**: The `read_hepmc_file_with_compression()` function automatically handles both compressed (`.zst`) and uncompressed HepMC3 files.
+
+5. **Event Processing**: The conversion function processes events one at a time, allowing for efficient memory usage with large files.
+
+This example demonstrates how to convert HepMC3 event data to the `PseudoJet` format expected by JetReconstruction.jl. The same conversion works for both pp and e⁺e⁻ events; only the jet reconstruction algorithm differs.
+
 ## See Also
 
 - [Getting Started](@ref) for installation and basics
 - [Events](@ref) for event manipulation
 - [Particles](@ref) for particle operations
 - [File I/O](@ref) for reading and writing files
+- [JetReconstruction.jl](https://github.com/JuliaHEP/JetReconstruction.jl) for jet finding algorithms
