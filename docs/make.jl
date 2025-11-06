@@ -1,33 +1,26 @@
 using Documenter
-using CairoMakie
-using EDM4hep
-using JetReconstruction
+using HepMC3
 
-push!(LOAD_PATH, "../ext/")
-
-include(joinpath(@__DIR__, "..", "ext", "JetVisualisation.jl"))
-include(joinpath(@__DIR__, "..", "ext", "EDM4hepJets.jl"))
-
-makedocs(sitename = "JetReconstruction.jl",
+makedocs(sitename = "HepMC3.jl",
          clean = false,
          pages = [
              "Home" => "index.md",
+             "Getting Started" => "getting_started.md",
+             "Events" => "events.md",
+             "Particles" => "particles.md",
+             "Vertices" => "vertices.md",
+             "Four-Vectors" => "fourvector.md",
+             "File I/O" => "file_io.md",
+             "Attributes" => "attributes.md",
+             "Units" => "units.md",
+             "Navigation" => "navigation.md",
              "Examples" => "examples.md",
-             "Particle Inputs" => "particles.md",
-             "Reconstruction Strategies" => "strategy.md",
-             "Substructure" => "substructure.md",
-             "Lund Jet Plane" => "lundplane.md",
-             "Jet Helpers" => "helpers.md",
-             "EDM4hep" => "EDM4hep.md",
-             "Recombination Schemes" => "recombination.md",
-             "SoftKiller" => "softkiller.md",
-             "Visualisation" => "visualisation.md",
              "Contributing" => "contributing.md",
              "Reference Docs" => Any["Public API" => "lib/public.md",
                                      "Internal API" => "lib/internal.md"]
          ])
 
-deploydocs(repo = "github.com/JuliaHEP/JetReconstruction.jl.git",
+deploydocs(repo = "github.com/JuliaHEP/HepMC3.jl.git",
            devbranch = "main",
            devurl = "dev",
            versions = ["stable" => "v^", "v#.#", "dev" => "dev"],

@@ -1,6 +1,6 @@
-# Jet Reconstruction Internal Documentation
+# HepMC3 Internal Documentation
 
-Documentation for `JetReconstruction.jl`'s internal methods and types.
+Documentation for `HepMC3.jl`'s internal methods and types.
 
 N.B. no guarantee is made of stability of these interfaces or types.
 
@@ -17,7 +17,7 @@ Pages = ["internal.md"]
 ## Internal Methods and Types
 
 ```@autodocs
-Modules = [JetReconstruction]
+Modules = [HepMC3]
 Public = false
 Order = [:function, :type]
 ```

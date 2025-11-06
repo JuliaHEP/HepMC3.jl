@@ -1,159 +1,110 @@
-# Jet Reconstruction
+# HepMC3.jl
 
-This package implements sequential Jet Reconstruction (clustering) algorithms,
-which are used in high-energy physics as part of event reconstruction for ``pp``
-and ``e^+e^-`` colliders.
+Julia bindings for the [HepMC3](https://gitlab.cern.ch/hepmc/HepMC3) library for representing High Energy Physics (HEP) Monte Carlo events. The bindings use the [CxxWrap.jl](https://github.com/JuliaInterop/CxxWrap.jl) package to wrap C++ types and functions to Julia.
 
-## Algorithms
+## Overview
 
-Algorithms used are based on the C++ FastJet package (<https://fastjet.fr>,
-[hep-ph/0512210](https://arxiv.org/abs/hep-ph/0512210),
-[arXiv:1111.6097](https://arxiv.org/abs/1111.6097)), reimplemented natively in
-Julia.
+HepMC3.jl provides a complete Julia interface to the HepMC3 C++ library, enabling you to:
 
-The algorithms include anti-``{k}_\text{T}``, Cambridge/Aachen, inclusive
-``k_\text{T}``, generalised ``k_\text{T}`` for ``pp`` events; and the Durham
-algorithm and generalised ``k_\text{T}`` for ``e^+e^-``.
+- **Create and manipulate** Monte Carlo event structures
+- **Read and write** HepMC3 event files
+- **Navigate** particle decay chains and event topologies
+- **Access** particle properties, vertices, and event metadata
+- **Work with** four-vectors, attributes, and units
 
-## Reconstruction Interface
-
-The main interface for reconstruction is [`jet_reconstruct`](@ref), called as, e.g.,
+## Quick Start
 
 ```julia
-jet_reconstruct(particles; algorithm = JetAlgorithm.AntiKt, R = 1.0)
+using HepMC3
+
+# Create an event
+event = create_event(1)
+set_units!(event, :GeV, :mm)
+
+# Create particles
+p1 = make_shared_particle(0.0, 0.0, 7000.0, 7000.0, 2212, 3)  # proton
+p2 = make_shared_particle(10.0, 20.0, 100.0, 150.0, 11, 1)    # electron
+
+# Create a vertex
+vertex = make_shared_vertex()
+connect_particle_in(vertex, p1)
+connect_particle_out(vertex, p2)
+attach_vertex_to_event(event, vertex)
+
+# Access particle properties
+props = get_particle_properties(p2)
+println("Electron pT: $(props.pt) GeV")
 ```
 
-or with some of the optional arguments,
+## Installation
 
 ```julia
-jet_reconstruct(particles; algorithm = JetAlgorithm.GenKt, R = 0.4, 
-                p = 0.5, recombine = addjets, strategy = RecoStrategy.Best)
+using Pkg
+Pkg.add("HepMC3")
 ```
 
-Where `particles` is a collection of 4-vector objects (see [Input Particle
-Types](@ref)) to reconstruct and the algorithm is given explicitly.
+## Features
 
-For the case of generalised ``k_T`` (for ``pp`` and ``e^+e^-``) both the
-algorithm (`GenKt`, `EEKt`) and `p` are needed.
+### Event Management
+- Create and manipulate `GenEvent` objects
+- Set event numbers, weights, and metadata
+- Add PDF information, cross sections, and heavy ion data
 
-The `R` value determines the cone size; in the case of the Durham algorithm the
-`R` value is ignored.
+### Particle Handling
+- Create particles with four-momentum and PDG IDs
+- Access particle properties (momentum, mass, charge, etc.)
+- Navigate particle relationships (parents, children, siblings)
 
-For a discussion of the `recombine` function, see [Jet Recombination](@ref).
+### Vertex Operations
+- Create vertices and connect particles
+- Set vertex positions and status codes
+- Navigate event topology
 
-The object returned is a [`ClusterSequence`](@ref), which internally tracks all
-merge steps and is used for [Inclusive and Exclusive Selections](@ref).
+### File I/O
+- Read and write HepMC3 ASCII files
+- Support for compressed files (zstd)
+- Batch event reading
 
-### Algorithm Types
+### Navigation
+- Traverse decay chains forward and backward
+- Find particle ancestry
+- Get production and decay vertices
 
-Each known algorithm is referenced using a `JetAlgorithm` scoped enum value.
+## Documentation Structure
 
-| Algorithm | Type name | Notes |
-|-----------|-----------|-------|
-| anti-``{k}_\text{T}`` | `JetAlgorithm.AntiKt` | Implies `p=-1` |
-| Cambridge/Aachen | `JetAlgorithm.CA` | Implies `p=0` |
-| inclusive ``k_\text{T}`` | `JetAlgorithm.Kt` | Implies `p=1` |
-| generalised ``k_\text{T}`` | `JetAlgorithm.GenKt` | For $pp$, value of `p` must also be specified |
-| ``e^+e-`` ``k_\text{T}`` / Durham | `JetAlgorithm.Durham` | `R` value ignored and can be omitted |
-| generalised ``e^+e-`` ``k_\text{T}`` | `JetAlgorithm.EEKt` | For ``e^+e^-``, value of `p` must also be specified |
+- **[Getting Started](@ref)** - Installation and basic usage
+- **[Events](@ref)** - Working with GenEvent objects
+- **[Particles](@ref)** - Creating and accessing particles
+- **[Vertices](@ref)** - Building event topologies
+- **[Four-Vectors](@ref)** - Momentum and position vectors
+- **[File I/O](@ref)** - Reading and writing event files
+- **[Attributes](@ref)** - Adding metadata to events and particles
+- **[Units](@ref)** - Setting and working with units
+- **[Navigation](@ref)** - Traversing event structures
+- **[Examples](@ref)** - Complete working examples
 
-### Strategy
+## Package Information
 
-Generally one does not need to manually specify a strategy, but [Algorithm
-Strategy](@ref) describes how to do this, if desired.
+This package wraps the HepMC3 C++ library version 3.x using CxxWrap.jl. The wrapper code is generated using [WrapIt](https://github.com/grasph/wrapit), which automates the generation of wrapper code by analyzing the HepMC3 header files.
 
-## Inclusive and Exclusive Selections
+## Compatibility
 
-To obtain final jets both inclusive (``p_T`` cut) and exclusive (``n_{jets}`` or
-``d_{ij}`` cut) selections are supported:
-
-- [`inclusive_jets(clusterseq::ClusterSequence, ptmin = 0.0)`](@ref)
-- [`exclusive_jets(clusterseq::ClusterSequence; dcut = nothing, njets = nothing)`](@ref)
-
-(For `exclusive_jets` either `dcut` or `njets` is needed, but not both.)
-
-### Sorting
-
-Sorting vectors is trivial in Julia, no special sorting methods are provided. As
-an example, to sort exclusive jets of ``>5.0`` (usually GeV, depending on your
-EDM) from highest energy to lowest:
-
-```julia
-sorted_jets = sort!(inclusive_jets(cs::ClusterSequence; ptmin=5.0), 
-  by=JetReconstruction.energy, rev=true)
-```
-
-## Jet Constituents and Jet Parents
-
-There are two ways to retrieve jet constituents. The first way is just to
-retrieve the *indexes* of the constituent jets. These indexes refer to the
-original collection of particles passed in to the reconstruction.
-
-- [`constituent_indexes`](@ref)
-
-The alternative it to retrieve the actual jets from the reconstruction sequence.
-In this case the returned array contains references to the jet objects (of type
-`T`) used internally in the reconstruction.
-
-- [`constituents`](@ref)
-
-Note that in both these cases the cluster sequence object from the
-reconstruction is required (to avoid circular dependencies and improve memory
-management reconstructed jets do not contain a link back to their cluster
-sequence).
-
-To retrieve a jet's parents:
-
-- [`parent_jets`](@ref)
-
-This will return a tuple of the target jet's parents, or `nothing` when one or
-both parents are missing (the only case when a jet has one parent is when it
-undergoes a *beam merge* step).
+- **Julia**: 1.6+
+- **HepMC3_jll**: 3.3.0
+- **CxxWrap**: 0.16.0
 
 ## References
 
-Although it has been developed further since the CHEP2023 conference, the CHEP
-conference proceedings,
-[10.1051/epjconf/202429505017](https://doi.org/10.1051/epjconf/202429505017),
-should be cited if you use this package:
+If you use HepMC3.jl in your research, please cite the HepMC3 library:
 
 ```bibtex
-@article{refId0,
-    author = {{Stewart, Graeme Andrew} and {Gras, Philippe} and {Hegner, Benedikt} and {Krasnopolski, Atell}},
-    doi = {10.1051/epjconf/202429505017},
-    journal = {EPJ Web of Conf.},
-    pages = {05017},
-    title = {Polyglot Jet Finding},
-    url = {https://doi.org/10.1051/epjconf/202429505017},
-    volume = 295,
-    year = 2024,
-    eprint={2309.17309},
-    archivePrefix={arXiv},
-    primaryClass={hep-ex}
+@article{hepmc3,
+    title = {HepMC3 Event Record Library},
+    author = {The HepMC3 Collaboration},
+    journal = {https://gitlab.cern.ch/hepmc/HepMC3}
 }
 ```
 
-The original paper on [arXiv](https://arxiv.org/abs/2309.17309) is:
+## License
 
-```bibtex
-@misc{stewart2023polyglot,
-      title={Polyglot Jet Finding}, 
-      author={Graeme Andrew Stewart and Philippe Gras and Benedikt Hegner and Atell Krasnopolski},
-      year={2023},
-      eprint={2309.17309},
-      archivePrefix={arXiv},
-      primaryClass={hep-ex}
-}
-```
-
-## Authors and Copyright
-
-Code in this package is authored by:
-
-- Atell Krasnopolski <delta_atell@protonmail.com>
-- Graeme A Stewart <graeme.andrew.stewart@cern.ch>
-- Philippe Gras <philippe.gras@cern.ch>
-
-and is Copyright 2022-2024 The Authors, CERN.
-
-The code is under the MIT License.
+This package is licensed under the same license as the HepMC3 library. See the [LICENSE](../LICENSE) file for details.

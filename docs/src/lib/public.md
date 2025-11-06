@@ -1,6 +1,6 @@
-# Jet Reconstruction Public Documentation
+# HepMC3 Public Documentation
 
-Documentation for `JetReconstruction.jl`'s public interfaces.
+Documentation for `HepMC3.jl`'s public interfaces.
 
 ## Index
 
@@ -11,7 +11,7 @@ Pages = ["public.md"]
 ## Public Methods and Types
 
 ```@autodocs
-Modules = [JetReconstruction]
+Modules = [HepMC3]
 Private = false
 Order = [:function, :type]
 ```
