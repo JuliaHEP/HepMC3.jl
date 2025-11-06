@@ -46,6 +46,6 @@ julia> include("make.jl")
 julia> using LiveServer
 
 julia> LiveServer.serve(dir="build/")
-✓ LiveServer listening on http://localhost:8000/ ...
+LiveServer listening on http://localhost:8000/ ...
   (use CTRL+C to shut down)
 ```

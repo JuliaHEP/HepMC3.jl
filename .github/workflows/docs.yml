@@ -17,21 +17,23 @@ jobs:
     name: Build and Deploy Documentation
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pages: write
-      id-token: write
+      contents: write
+      pull-requests: read
+      statuses: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Needed for version detection
 
       - name: Setup Julia environment
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
-          version: '1.10'
-          arch: x64
+          version: '1'
+
+      - name: Cache Julia packages
+        uses: julia-actions/cache@v2
 
       - name: Install system dependencies
         run: |
@@ -44,13 +46,6 @@ jobs:
             python3-dev \
             libclang-dev \
             clang
-
-      - name: Cache Julia packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.julia
-          key: ${{ runner.os }}-docs-${{ hashFiles('**/Project.toml') }}
-          restore-keys: ${{ runner.os }}-docs-
 
       - name: Setup Julia project and install dependencies
         run: |
@@ -90,26 +85,11 @@ jobs:
           cd build
           cmake --build . --config Release --parallel 8
 
-      - name: Install documentation dependencies
-        run: |
-          julia --project=docs -e "
-            using Pkg
-            Pkg.instantiate()
-          "
-
-      - name: Build documentation
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-        run: |
-          julia --project=docs -e "
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            include(\"docs/make.jl\")
-          "
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
 
       - name: Deploy documentation
-        uses: JuliaDocs/Documenter.jl@v1
+        uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

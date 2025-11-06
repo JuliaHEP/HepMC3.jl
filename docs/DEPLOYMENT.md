@@ -32,7 +32,7 @@ ssh-keygen -t ed25519 -C "hepmc3-docs-deploy" -f ~/.ssh/hepmc3_docs_deploy
    - Click **Add deploy key**
    - Title: `Documentation Deploy Key`
    - Key: Copy the contents of `~/.ssh/hepmc3_docs_deploy.pub`
-   - ✅ Check **Allow write access** (important!)
+   - Check **Allow write access** (important!)
    - Click **Add key**
 
 3. **Add the private key as a GitHub Secret**:
