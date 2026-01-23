@@ -10,7 +10,6 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 HepMC3_jll = "b85c3e40-22db-5268-bacb-02bd65cb4e01"
 JetReconstruction = "44e8cb2c-dfab-4825-9c70-d4808a591196"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
-MCPRepl = "b62cb57a-788d-40b5-9d64-84a1dfc37ce3"
 WrapIt = "962878d8-9763-11ee-8c14-fbf60c98afae"
 
 [compat]
