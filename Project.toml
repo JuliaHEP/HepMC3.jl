@@ -7,12 +7,16 @@ CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 CodecZstd = "6b39b394-51ab-5f42-8807-6242bab2b4c2"
 CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 HepMC3_jll = "b85c3e40-22db-5268-bacb-02bd65cb4e01"
+JetReconstruction = "44e8cb2c-dfab-4825-9c70-d4808a591196"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
-
+MCPRepl = "b62cb57a-788d-40b5-9d64-84a1dfc37ce3"
+WrapIt = "962878d8-9763-11ee-8c14-fbf60c98afae"
 
 [compat]
-CxxWrap = "0.16.0"
+CxxWrap = "0.17.4"
 HepMC3_jll = "3.3.0"
+JetReconstruction = "0.4.9"
+WrapIt = "1.7.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

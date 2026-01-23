@@ -20,3 +20,6 @@ gen/cpp/generated_cxx
 
 gen/jl/*
 !gen/jl/HepMC3-extras.jl
+
+# MCPRepl security configuration (contains API keys)
+.mcprepl/

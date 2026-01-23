@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "julia-repl": {
+      "type": "http",
+      "url": "http://localhost:3003",
+      "headers": {
+        "X-MCPRepl-Target": "HepMC3.jl"
+      }
+    }
+  }
+}
