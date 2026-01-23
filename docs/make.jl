@@ -3,9 +3,11 @@ using HepMC3
 
 makedocs(sitename = "HepMC3.jl",
          clean = false,
+         warnonly = true,
          pages = [
              "Home" => "index.md",
              "Getting Started" => "getting_started.md",
+             "Building from Source" => "building.md",
              "Events" => "events.md",
              "Particles" => "particles.md",
              "Vertices" => "vertices.md",
