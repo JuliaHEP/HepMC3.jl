@@ -17,7 +17,7 @@ struct Jljlcxx_Module: public Wrapper {
 
   Jljlcxx_Module(jlcxx::Module& jlModule): Wrapper(jlModule){
     DEBUG_MSG("Adding wrapper for type jlcxx::Module (" __HERE__ ")");
-    // defined in /home/dorachan/.julia/artifacts/bc8cf72da3469c5840d53f1d4e8a459105026893/include/jlcxx/module.hpp:557:17
+    // defined in jlcxx/module.hpp:533:17
     jlcxx::TypeWrapper<jlcxx::Module>  t = jlModule.add_type<jlcxx::Module>("jlcxx!Module");
     type_ = std::unique_ptr<jlcxx::TypeWrapper<jlcxx::Module>>(new jlcxx::TypeWrapper<jlcxx::Module>(jlModule, t));
   }
