@@ -26,6 +26,7 @@ add_library(HepMC3Wrap SHARED
     ${GEN_SOURCES})
 
 target_include_directories(HepMC3Wrap PRIVATE ${SOURCE_DIR})
+target_compile_definitions(HepMC3Wrap PRIVATE JLCXX_FORCE_RANGES_OFF=1)
 
 if(HEPMC3_USE_COMPRESSION)
     target_compile_definitions(HepMC3Wrap PRIVATE HEPMC3_USE_COMPRESSION=1)
