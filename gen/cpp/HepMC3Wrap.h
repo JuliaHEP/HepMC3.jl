@@ -141,10 +141,10 @@ extern "C" {
     int run_info_weight_index(void* run_info, const char* name);
     void add_run_info_tool(void* run_info, const char* name, const char* version, const char* description);
     int get_run_info_tools_size(void* run_info);
-    const char* get_run_info_weight_name(void* run_info, int index);
-    const char* get_run_info_tool_name(void* run_info, int index);
-    const char* get_run_info_tool_version(void* run_info, int index);
-    const char* get_run_info_tool_description(void* run_info, int index);
+    void* get_run_info_weight_name(void* run_info, int index);
+    void* get_run_info_tool_name(void* run_info, int index);
+    void* get_run_info_tool_version(void* run_info, int index);
+    void* get_run_info_tool_description(void* run_info, int index);
 
     // Vertex equality and safe navigation functions
     bool vertices_equal(void* v1, void* v2);

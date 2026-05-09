@@ -778,6 +778,8 @@ end
 function _cstring_to_string(value)
     if value isa AbstractString
         return String(value)
+    elseif value isa Ptr
+        return unsafe_string(Ptr{UInt8}(value))
     end
 
     return unsafe_string(Ptr{UInt8}(value.cpp_object))

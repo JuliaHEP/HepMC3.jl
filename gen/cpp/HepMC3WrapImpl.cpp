@@ -16,10 +16,10 @@
 
 using namespace HepMC3;
 
-static const char* stable_string_result(std::string value) {
+static void* stable_string_result(std::string value) {
     static thread_local std::string storage;
     storage = std::move(value);
-    return storage.c_str();
+    return const_cast<char*>(storage.c_str());
 }
 
 // Particle management with shared_ptr
@@ -574,7 +574,7 @@ int get_run_info_weight_names_size(void* run_info) {
     return (*ri)->weight_names().size();
 }
 
-const char* get_run_info_weight_name(void* run_info, int index) {
+void* get_run_info_weight_name(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& names = (*ri)->weight_names();
     if (index < 0 || index >= static_cast<int>(names.size())) {
@@ -603,7 +603,7 @@ int get_run_info_tools_size(void* run_info) {
     return (*ri)->tools().size();
 }
 
-const char* get_run_info_tool_name(void* run_info, int index) {
+void* get_run_info_tool_name(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
@@ -612,7 +612,7 @@ const char* get_run_info_tool_name(void* run_info, int index) {
     return stable_string_result(tools[index].name);
 }
 
-const char* get_run_info_tool_version(void* run_info, int index) {
+void* get_run_info_tool_version(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
@@ -621,7 +621,7 @@ const char* get_run_info_tool_version(void* run_info, int index) {
     return stable_string_result(tools[index].version);
 }
 
-const char* get_run_info_tool_description(void* run_info, int index) {
+void* get_run_info_tool_description(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
