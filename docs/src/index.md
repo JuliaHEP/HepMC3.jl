@@ -44,7 +44,7 @@ Pkg.add("HepMC3")
 
 ### From Source (Development)
 
-For development or to use the latest features, you can build from source. See the [Building from Source](@ref) section for detailed instructions.
+For development or to use the latest features, you can build from source. See the [Building from Source](building.md) section for detailed instructions.
 
 ## Features
 
@@ -86,17 +86,17 @@ For development or to use the latest features, you can build from source. See th
 
 ## Documentation Structure
 
-- **[Getting Started](@ref)** - Installation and basic usage
-- **[Building from Source](@ref)** - Compiling the wrapper library
-- **[Events](@ref)** - Working with GenEvent objects
-- **[Particles](@ref)** - Creating and accessing particles
-- **[Vertices](@ref)** - Building event topologies
-- **[Four-Vectors](@ref)** - Momentum and position vectors
-- **[File I/O](@ref)** - Reading and writing event files
-- **[Attributes](@ref)** - Adding metadata to events and particles
-- **[Units](@ref)** - Setting and working with units
-- **[Navigation](@ref)** - Traversing event structures
-- **[Examples](@ref)** - Complete working examples
+- **[Getting Started](getting_started.md)** - Installation and basic usage
+- **[Building from Source](building.md)** - Compiling the wrapper library
+- **[Events](events.md)** - Working with GenEvent objects
+- **[Particles](particles.md)** - Creating and accessing particles
+- **[Vertices](vertices.md)** - Building event topologies
+- **[Four-Vectors](fourvector.md)** - Momentum and position vectors
+- **[File I/O](file_io.md)** - Reading and writing event files
+- **[Attributes](attributes.md)** - Adding metadata to events and particles
+- **[Units](units.md)** - Setting and working with units
+- **[Navigation](navigation.md)** - Traversing event structures
+- **[Examples](examples.md)** - Complete working examples
 
 ## Package Information
 

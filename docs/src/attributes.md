@@ -119,17 +119,8 @@ Vector attributes are also available:
 
 ## API Reference
 
-```@docs
-Attribute
-IntAttribute
-DoubleAttribute
-StringAttribute
-create_int_attribute
-create_double_attribute
-create_string_attribute
-create_particle_attribute
-add_particle_attribute!
-add_vertex_attribute
-add_event_attribute
-```
+- `Attribute`, `IntAttribute`, `DoubleAttribute`, `StringAttribute`
+- `create_int_attribute`, `create_double_attribute`, `create_string_attribute`
+- `create_particle_attribute`
+- `add_particle_attribute!`, `add_vertex_attribute`, `add_event_attribute`
 

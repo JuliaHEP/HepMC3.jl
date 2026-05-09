@@ -150,7 +150,7 @@ remove_particle!(event, particle_ptr)
 
 ## Event Attributes
 
-Events can have attributes attached (see [Attributes](@ref) for details):
+Events can have attributes attached (see [Attributes](attributes.md) for details):
 
 ```julia
 # Add string attribute
@@ -187,31 +187,13 @@ println("Event $(event_number(event)): $(particles_size(event)) particles, $(ver
 
 ## API Reference
 
-```@docs
-GenEvent
-create_event
-set_event_number
-event_number
-set_units!
-set_event_weights!
-get_event_weights
-create_run_info
-set_run_info!
-get_run_info
-set_weight_names!
-get_weight_names
-has_weight
-weight_index
-add_tool_info!
-get_tool_infos
-particles_size
-vertices_size
-get_particle_at
-get_vertex_at
-add_pdf_info!
-add_cross_section!
-add_heavy_ion!
-shift_position!
-remove_particle!
-```
+- `GenEvent`, `create_event`, `set_event_number`, `event_number`
+- `set_units!`, `set_event_weights!`, `get_event_weights`
+- `create_run_info`, `set_run_info!`, `get_run_info`
+- `set_weight_names!`, `get_weight_names`, `has_weight`, `weight_index`
+- `get_event_weight_names`, `event_weight_index`, `get_event_tool_infos`
+- `add_tool_info!`, `get_tool_infos`
+- `particles_size`, `vertices_size`, `get_particle_at`, `get_vertex_at`
+- `add_pdf_info!`, `add_cross_section!`, `add_heavy_ion!`
+- `shift_position!`, `remove_particle!`
 

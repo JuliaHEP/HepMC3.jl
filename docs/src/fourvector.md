@@ -248,53 +248,21 @@ props.mass          # Invariant mass
 
 ### Constructors
 
-```@docs
-FourVector
-```
+- `FourVector`
 
 ### Component Accessors
 
-```@docs
-px
-py
-pz
-e
-x
-y
-z
-t
-```
+- `px`, `py`, `pz`, `e`
+- `x`, `y`, `z`, `t`
 
 ### Derived Quantities
 
-```@docs
-pt
-pt2
-perp
-perp2
-eta
-abs_eta
-rap
-abs_rap
-phi
-theta
-m
-m2
-p3mod
-p3mod2
-rho
-length
-length2
-```
+- `pt`, `pt2`, `perp`, `perp2`
+- `eta`, `abs_eta`, `rap`, `abs_rap`
+- `phi`, `theta`, `m`, `m2`
+- `p3mod`, `p3mod2`, `rho`, `length`, `length2`
 
 ### Delta Calculations
 
-```@docs
-delta_eta
-delta_phi
-delta_rap
-delta_r_eta
-delta_r2_eta
-delta_r_rap
-delta_r2_rap
-```
+- `delta_eta`, `delta_phi`, `delta_rap`
+- `delta_r_eta`, `delta_r2_eta`, `delta_r_rap`, `delta_r2_rap`

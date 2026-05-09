@@ -271,26 +271,13 @@ end
 
 ### Setting Units
 
-```@docs
-set_units!
-```
+- `set_units!`
 
 ### Querying Units
 
-```@docs
-momentum_unit
-length_unit
-```
+- `momentum_unit`, `length_unit`
 
 ### Unit Constants
 
-```@docs
-GEV
-MEV
-MM
-CM
-GeV
-MeV
-mm
-cm
-```
+- `GEV`, `MEV`, `MM`, `CM`
+- `GeV`, `MeV`, `mm`, `cm`

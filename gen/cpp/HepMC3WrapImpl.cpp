@@ -12,8 +12,15 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 using namespace HepMC3;
+
+static const char* stable_string_result(std::string value) {
+    static thread_local std::string storage;
+    storage = std::move(value);
+    return storage.c_str();
+}
 
 // Particle management with shared_ptr
 void* create_shared_particle(void* momentum, int pdg_id, int status) {
@@ -72,7 +79,22 @@ void* create_reader_ascii(const char* filename) {
 bool reader_read_event(void* reader, void* event) {
     auto r = static_cast<ReaderAscii*>(reader);
     auto e = static_cast<GenEvent*>(event);
-    return r->read_event(*e);
+    if (r->failed()) {
+        return false;
+    }
+
+    r->read_event(*e);
+    return !r->failed();
+}
+
+bool reader_failed(void* reader) {
+    auto r = static_cast<ReaderAscii*>(reader);
+    return r->failed();
+}
+
+void delete_reader_ascii(void* reader) {
+    auto r = static_cast<ReaderAscii*>(reader);
+    delete r;
 }
 
 void* create_writer_ascii(const char* filename) {
@@ -83,14 +105,29 @@ void* create_writer_ascii(const char* filename) {
 bool writer_write_event(void* writer, void* event) {
     auto w = static_cast<WriterAscii*>(writer);
     auto e = static_cast<GenEvent*>(event);
+    if (w->failed()) {
+        return false;
+    }
+
     w->write_event(*e);
-    return true;  // Return success indicator
+    return !w->failed();
+}
+
+bool writer_failed(void* writer) {
+    auto w = static_cast<WriterAscii*>(writer);
+    return w->failed();
 }
 
 // Also add explicit close/flush functions:
 void writer_close(void* writer) {
     auto w = static_cast<WriterAscii*>(writer);
     w->close();
+}
+
+void delete_writer_ascii(void* writer) {
+    auto w = static_cast<WriterAscii*>(writer);
+    w->close();
+    delete w;
 }
 
 void reader_close(void* reader) {
@@ -511,6 +548,15 @@ void* get_event_run_info(void* event) {
     return nullptr;
 }
 
+void* get_event_run_info_shared(void* event) {
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
+    auto ri = (*e)->run_info();
+    if (ri) {
+        return new std::shared_ptr<HepMC3::GenRunInfo>(ri);
+    }
+    return nullptr;
+}
+
 void clear_run_info_weight_names(void* run_info) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     (*ri)->set_weight_names({});
@@ -528,13 +574,13 @@ int get_run_info_weight_names_size(void* run_info) {
     return (*ri)->weight_names().size();
 }
 
-std::string get_run_info_weight_name(void* run_info, int index) {
+const char* get_run_info_weight_name(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& names = (*ri)->weight_names();
     if (index < 0 || index >= static_cast<int>(names.size())) {
         throw std::out_of_range("run info weight-name index out of range");
     }
-    return names[index];
+    return stable_string_result(names[index]);
 }
 
 bool run_info_has_weight(void* run_info, const char* name) {
@@ -557,31 +603,31 @@ int get_run_info_tools_size(void* run_info) {
     return (*ri)->tools().size();
 }
 
-std::string get_run_info_tool_name(void* run_info, int index) {
+const char* get_run_info_tool_name(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
         throw std::out_of_range("run info tool index out of range");
     }
-    return tools[index].name;
+    return stable_string_result(tools[index].name);
 }
 
-std::string get_run_info_tool_version(void* run_info, int index) {
+const char* get_run_info_tool_version(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
         throw std::out_of_range("run info tool index out of range");
     }
-    return tools[index].version;
+    return stable_string_result(tools[index].version);
 }
 
-std::string get_run_info_tool_description(void* run_info, int index) {
+const char* get_run_info_tool_description(void* run_info, int index) {
     auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
     const auto& tools = (*ri)->tools();
     if (index < 0 || index >= static_cast<int>(tools.size())) {
         throw std::out_of_range("run info tool index out of range");
     }
-    return tools[index].description;
+    return stable_string_result(tools[index].description);
 }
 
 
@@ -627,12 +673,13 @@ void* read_all_events_from_file(const char* filename, int max_events) {
     int event_count = 0;
     while (!reader.failed() && (max_events < 0 || event_count < max_events)) {
         auto event = std::make_shared<HepMC3::GenEvent>();
-        if (reader.read_event(*event)) {
-            events->push_back(event);
-            event_count++;
-        } else {
+        reader.read_event(*event);
+        if (reader.failed()) {
             break;
         }
+
+        events->push_back(event);
+        event_count++;
     }
     
     return events;
@@ -655,4 +702,21 @@ int get_events_vector_size(void* events_vector) {
 void delete_events_vector(void* events_vector) {
     auto* events = static_cast<std::vector<std::shared_ptr<HepMC3::GenEvent>>*>(events_vector);
     delete events;
+}
+
+int get_event_number_shared(void* event) {
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
+    return (*e)->event_number();
+}
+
+double* get_event_weights_shared(void* event, int* n_weights) {
+    auto e = static_cast<std::shared_ptr<HepMC3::GenEvent>*>(event);
+    auto& weights = (*e)->weights();
+    *n_weights = weights.size();
+
+    double* result = new double[weights.size()];
+    for (size_t i = 0; i < weights.size(); ++i) {
+        result[i] = weights[i];
+    }
+    return result;
 }

@@ -219,15 +219,8 @@ end
 
 ## API Reference
 
-```@docs
-get_production_vertex
-get_decay_vertex
-get_parent_particles
-get_decay_products
-get_sibling_particles
-traverse_decay_chain
-find_particle_ancestry
-get_incoming_particles
-get_outgoing_particles
-```
+- `get_production_vertex`, `get_decay_vertex`
+- `get_parent_particles`, `get_decay_products`, `get_sibling_particles`
+- `traverse_decay_chain`, `find_particle_ancestry`
+- `get_incoming_particles`, `get_outgoing_particles`
 

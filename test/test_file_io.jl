@@ -19,6 +19,7 @@
         @test write_success == true
         
         HepMC3.writer_close(writer)
+        HepMC3.delete_writer_ascii(writer)
         
         # Verify file exists and has content
         @test isfile(filename)
@@ -50,6 +51,7 @@
         writer = HepMC3.create_writer_ascii(filename)
         HepMC3.writer_write_event(writer, event.cpp_object)
         HepMC3.writer_close(writer)
+        HepMC3.delete_writer_ascii(writer)
         
         # Read event back
         reader = HepMC3.create_reader_ascii(filename)
@@ -60,6 +62,7 @@
         @test read_success == true
         
         HepMC3.reader_close(reader)
+        HepMC3.delete_reader_ascii(reader)
         
         # Verify read event properties
         @test particles_size(read_event) == 3
@@ -94,12 +97,14 @@
         writer = HepMC3.create_writer_ascii(filename)
         HepMC3.writer_write_event(writer, original_event.cpp_object)
         HepMC3.writer_close(writer)
+        HepMC3.delete_writer_ascii(writer)
         
         # Read
         reader = HepMC3.create_reader_ascii(filename)
         read_event = HepMC3.GenEvent()
         HepMC3.reader_read_event(reader, read_event.cpp_object)
         HepMC3.reader_close(reader)
+        HepMC3.delete_reader_ascii(reader)
         
         # Compare
         @test particles_size(read_event) == original_particles

@@ -169,22 +169,10 @@ end
 
 ## API Reference
 
-```@docs
-GenVertex
-make_shared_vertex
-create_vertex
-connect_particle_in
-connect_particle_out
-attach_vertex_to_event
-set_vertex_position
-get_vertex_position
-get_vertex_x
-get_vertex_y
-get_vertex_z
-get_vertex_t
-get_vertex_properties
-set_vertex_status!
-get_incoming_particles
-get_outgoing_particles
-```
+- `GenVertex`, `make_shared_vertex`, `create_vertex`
+- `connect_particle_in`, `connect_particle_out`, `attach_vertex_to_event`
+- `set_vertex_position`, `get_vertex_position`
+- `get_vertex_x`, `get_vertex_y`, `get_vertex_z`, `get_vertex_t`
+- `get_vertex_properties`, `set_vertex_status!`
+- `get_incoming_particles`, `get_outgoing_particles`
 

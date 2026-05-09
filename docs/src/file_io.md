@@ -335,27 +335,16 @@ HepMC3 ASCII format is human-readable but larger than binary formats. For produc
 
 ### Reading Functions
 
-```@docs
-read_hepmc_file
-read_hepmc_file_with_compression
-read_all_events_from_file
-create_reader_ascii
-reader_read_event
-reader_close
-```
+- `read_hepmc_file`, `read_hepmc_file_with_compression`
+- `read_all_events_from_file`
+- `create_reader_ascii`, `reader_read_event`, `reader_failed`
+- `reader_close`, `delete_reader_ascii`
 
 ### Writing Functions
 
-```@docs
-create_writer_ascii
-writer_write_event
-writer_close
-```
+- `create_writer_ascii`, `writer_write_event`, `writer_failed`
+- `writer_close`, `delete_writer_ascii`
 
 ### Utility Functions
 
-```@docs
-get_final_state_particles
-get_particle_at
-get_vertex_at
-```
+- `get_final_state_particles`, `get_particle_at`, `get_vertex_at`

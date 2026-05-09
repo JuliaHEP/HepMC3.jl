@@ -15,6 +15,7 @@ const TEST_FILES = [
     "test_physics_examples.jl",
     "test_navigation.jl",
     "test_run_info.jl",
+    "test_round_trip.jl",
     "test_build_configuration.jl"
 ]
 

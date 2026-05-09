@@ -450,8 +450,8 @@ This example demonstrates how to convert HepMC3 event data to the `PseudoJet` fo
 
 ## See Also
 
-- [Getting Started](@ref) for installation and basics
-- [Events](@ref) for event manipulation
-- [Particles](@ref) for particle operations
-- [File I/O](@ref) for reading and writing files
+- [Getting Started](getting_started.md) for installation and basics
+- [Events](events.md) for event manipulation
+- [Particles](particles.md) for particle operations
+- [File I/O](file_io.md) for reading and writing files
 - [JetReconstruction.jl](https://github.com/JuliaHEP/JetReconstruction.jl) for jet finding algorithms

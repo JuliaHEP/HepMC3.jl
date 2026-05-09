@@ -1,7 +1,6 @@
 #include "HepMC3Wrap.h"
 #include "jlcxx/jlcxx.hpp"
 #include "jlcxx/functions.hpp"
-#include "jlcxx/stl.hpp"
 
 
 void add_manual_hepmc3_methods(jlcxx::Module& mod) {
@@ -21,9 +20,13 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     // I/O operations
     mod.method("create_reader_ascii", &create_reader_ascii);
     mod.method("reader_read_event", &reader_read_event);
+    mod.method("reader_failed", &reader_failed);
+    mod.method("delete_reader_ascii", &delete_reader_ascii);
     mod.method("create_writer_ascii", &create_writer_ascii);
     mod.method("writer_write_event", &writer_write_event);
+    mod.method("writer_failed", &writer_failed);
     mod.method("writer_close", &writer_close);
+    mod.method("delete_writer_ascii", &delete_writer_ascii);
     mod.method("reader_close", &reader_close);
     
     // NEW: Vertex operations
@@ -123,6 +126,7 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("create_gen_run_info", &create_gen_run_info);
     mod.method("set_event_run_info", &set_event_run_info);
     mod.method("get_event_run_info", &get_event_run_info);
+    mod.method("get_event_run_info_shared", &get_event_run_info_shared);
     mod.method("clear_run_info_weight_names", &clear_run_info_weight_names);
     mod.method("add_run_info_weight_name", &add_run_info_weight_name);
     mod.method("get_run_info_weight_names_size", &get_run_info_weight_names_size);
@@ -146,6 +150,8 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     mod.method("get_event_from_vector", &get_event_from_vector);
     mod.method("get_events_vector_size", &get_events_vector_size);
     mod.method("delete_events_vector", &delete_events_vector);
+    mod.method("get_event_number_shared", &get_event_number_shared);
+    mod.method("get_event_weights_shared", &get_event_weights_shared);
 
 }
 // No JLCXX_MODULE here - that's handled by the generated code

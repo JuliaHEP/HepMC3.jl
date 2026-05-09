@@ -17,7 +17,7 @@ The package includes the HepMC3 C++ library via `HepMC3_jll`, so no additional s
 
 ### From Source
 
-For development or to use the latest features, see the [Building from Source](@ref) section.
+For development or to use the latest features, see the [Building from Source](building.md) section.
 
 ## Basic Usage
 
@@ -306,9 +306,9 @@ end
 
 ## Next Steps
 
-- Learn about [Events](@ref) in detail
-- Explore [Particles](@ref) and their properties
-- Understand [Vertices](@ref) and event topology
-- Work with [Four-Vectors](@ref) for kinematic calculations
-- Read about [File I/O](@ref) for handling large datasets
-- See [Examples](@ref) for more complex use cases
+- Learn about [Events](events.md) in detail
+- Explore [Particles](particles.md) and their properties
+- Understand [Vertices](vertices.md) and event topology
+- Work with [Four-Vectors](fourvector.md) for kinematic calculations
+- Read about [File I/O](file_io.md) for handling large datasets
+- See [Examples](examples.md) for more complex use cases

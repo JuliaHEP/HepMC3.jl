@@ -680,6 +680,7 @@ end
 
 
 export set_event_weights!, get_event_weights
+export get_event_weight_names, get_event_tool_infos, event_weight_index
 export particles_size, vertices_size, get_particle_at, get_vertex_at
 export particles_equal
 
@@ -690,25 +691,32 @@ end
 
 # Replace the get_event_weights function:
 
+function _copy_weights_from_pointer(weights_ptr, n_weights::Integer)
+    if weights_ptr == C_NULL || n_weights == 0
+        return Float64[]
+    end
+
+    raw_ptr = Ptr{Float64}(weights_ptr.cpp_object)
+    weights = unsafe_wrap(Array, raw_ptr, n_weights)
+    result = copy(weights)
+    free_weights(weights_ptr)
+    return result
+end
+
 function get_event_weights(event::GenEvent)
     n_weights = Ref{Int32}(0)
     weights_ptr = get_event_weights(event.cpp_object, n_weights)
-    
-    if weights_ptr == C_NULL || n_weights[] == 0
-        return Float64[]
-    end
-    
-    # Convert CxxPtr to regular Ptr for unsafe_wrap
-    raw_ptr = Ptr{Float64}(weights_ptr.cpp_object)
-    
-    # Copy weights to Julia array
-    weights = unsafe_wrap(Array, raw_ptr, n_weights[])
-    result = copy(weights)
-    
-    # Free C++ allocated memory
-    free_weights(weights_ptr)
-    
-    return result
+    return _copy_weights_from_pointer(weights_ptr, n_weights[])
+end
+
+function get_event_weights(event_ptr::Ptr{Nothing})
+    n_weights = Ref{Int32}(0)
+    weights_ptr = get_event_weights_shared(event_ptr, n_weights)
+    return _copy_weights_from_pointer(weights_ptr, n_weights[])
+end
+
+function event_number(event_ptr::Ptr{Nothing})
+    return get_event_number_shared(event_ptr)
 end
 
 
@@ -767,6 +775,14 @@ function set_weight_names!(run_info, names::AbstractVector{<:AbstractString})
     return run_info
 end
 
+function _cstring_to_string(value)
+    if value isa AbstractString
+        return String(value)
+    end
+
+    return unsafe_string(Ptr{UInt8}(value.cpp_object))
+end
+
 """
     get_weight_names(run_info_or_event)
 
@@ -774,11 +790,26 @@ Return the weight names attached to a `GenRunInfo` object or event.
 """
 function get_weight_names(run_info)
     n_names = get_run_info_weight_names_size(run_info)
-    return [String(get_run_info_weight_name(run_info, i)) for i in 0:(n_names - 1)]
+    return [_cstring_to_string(get_run_info_weight_name(run_info, i)) for i in 0:(n_names - 1)]
 end
 
 function get_weight_names(event::GenEvent)
     run_info = get_run_info(event)
+    return run_info == C_NULL ? String[] : get_weight_names(run_info)
+end
+
+"""
+    get_event_weight_names(event)
+
+Return weight names from an event object or an event pointer returned by
+`read_hepmc_file`.
+"""
+function get_event_weight_names(event::GenEvent)
+    return get_weight_names(event)
+end
+
+function get_event_weight_names(event_ptr::Ptr{Nothing})
+    run_info = get_event_run_info_shared(event_ptr)
     return run_info == C_NULL ? String[] : get_weight_names(run_info)
 end
 
@@ -811,6 +842,20 @@ function weight_index(event::GenEvent, name::AbstractString)
 end
 
 """
+    event_weight_index(event, name)
+
+Return the zero-based HepMC3 weight index for an event object or event pointer.
+"""
+function event_weight_index(event::GenEvent, name::AbstractString)
+    return weight_index(event, name)
+end
+
+function event_weight_index(event_ptr::Ptr{Nothing}, name::AbstractString)
+    run_info = get_event_run_info_shared(event_ptr)
+    return run_info == C_NULL ? -1 : weight_index(run_info, name)
+end
+
+"""
     add_tool_info!(run_info, name, version, description)
 
 Add generator or processing tool metadata to run information.
@@ -834,9 +879,9 @@ function get_tool_infos(run_info)
     n_tools = get_run_info_tools_size(run_info)
     return [
         (
-            name = String(get_run_info_tool_name(run_info, i)),
-            version = String(get_run_info_tool_version(run_info, i)),
-            description = String(get_run_info_tool_description(run_info, i)),
+            name = _cstring_to_string(get_run_info_tool_name(run_info, i)),
+            version = _cstring_to_string(get_run_info_tool_version(run_info, i)),
+            description = _cstring_to_string(get_run_info_tool_description(run_info, i)),
         )
         for i in 0:(n_tools - 1)
     ]
@@ -844,6 +889,21 @@ end
 
 function get_tool_infos(event::GenEvent)
     run_info = get_run_info(event)
+    return run_info == C_NULL ? NamedTuple[] : get_tool_infos(run_info)
+end
+
+"""
+    get_event_tool_infos(event)
+
+Return tool metadata from an event object or an event pointer returned by
+`read_hepmc_file`.
+"""
+function get_event_tool_infos(event::GenEvent)
+    return get_tool_infos(event)
+end
+
+function get_event_tool_infos(event_ptr::Ptr{Nothing})
+    run_info = get_event_run_info_shared(event_ptr)
     return run_info == C_NULL ? NamedTuple[] : get_tool_infos(run_info)
 end
 

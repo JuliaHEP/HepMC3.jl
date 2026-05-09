@@ -2,7 +2,8 @@ using Documenter
 using HepMC3
 
 makedocs(sitename = "HepMC3.jl",
-         clean = false,
+         clean = true,
+         format = Documenter.HTML(edit_link = "main"),
          warnonly = true,
          pages = [
              "Home" => "index.md",
@@ -18,12 +19,12 @@ makedocs(sitename = "HepMC3.jl",
              "Navigation" => "navigation.md",
              "Examples" => "examples.md",
              "Contributing" => "contributing.md",
-             "Reference Docs" => Any["Public API" => "lib/public.md",
-                                     "Internal API" => "lib/internal.md"]
          ])
 
-deploydocs(repo = "github.com/JuliaHEP/HepMC3.jl.git",
-           devbranch = "main",
-           devurl = "dev",
-           versions = ["stable" => "v^", "v#.#", "dev" => "dev"],
-           push_preview = true)
+if get(ENV, "GITHUB_ACTIONS", "false") == "true"
+    deploydocs(repo = "github.com/JuliaHEP/HepMC3.jl.git",
+               devbranch = "main",
+               devurl = "dev",
+               versions = ["stable" => "v^", "v#.#", "dev" => "dev"],
+               push_preview = true)
+end

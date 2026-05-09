@@ -120,7 +120,7 @@ Examples:
 
 ## Particle Attributes
 
-Add metadata to particles (see [Attributes](@ref) for details):
+Add metadata to particles (see [Attributes](attributes.md) for details):
 
 ```julia
 # Add integer attribute
@@ -181,19 +181,9 @@ println("Generated mass: $(get_generated_mass(proton)) GeV")
 
 ## API Reference
 
-```@docs
-GenParticle
-make_shared_particle
-create_particle
-get_particle_properties
-pdg_id
-status
-momentum
-particle_mass
-particle_charge
-get_generated_mass
-set_generated_mass
-is_generated_mass_set
-unset_generated_mass
-add_particle_attribute!
-```
+- `GenParticle`, `make_shared_particle`, `create_particle`
+- `get_particle_properties`
+- `pdg_id`, `status`, `momentum`
+- `particle_mass`, `particle_charge`
+- `get_generated_mass`, `set_generated_mass`, `is_generated_mass_set`, `unset_generated_mass`
+- `add_particle_attribute!`
