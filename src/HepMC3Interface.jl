@@ -34,6 +34,7 @@ export GenEventData, GenParticleData, GenVertexData
 export Attribute, IntAttribute, DoubleAttribute, StringAttribute
 export GenCrossSection, GenPdfInfo, GenHeavyIon
 export MEV, GEV, MM, CM
+export e, event_number, id, momentum, pdg_id, px, py, pz, set_e, set_event_number, set_px, set_py, set_pz, set_units, status
 
 # High-level interface functions for easier use
 export create_event, create_particle, create_vertex
@@ -683,7 +684,7 @@ export particles_size, vertices_size, get_particle_at, get_vertex_at
 export particles_equal
 
 function set_event_weights!(event::GenEvent, weights::Vector{Float64})
-    set_event_weights(event.cpp_object, weights, length(weights))
+    GC.@preserve weights set_event_weights(event.cpp_object, pointer(weights), Cint(length(weights)))
 end
 
 
@@ -980,4 +981,3 @@ function get_vertex_at(event::GenEvent, index::Integer)
     event_raw_ptr = event.cpp_object
     return get_vertex_at_raw(event_raw_ptr, index - 1)
 end
-
