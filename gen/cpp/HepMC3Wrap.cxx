@@ -1,6 +1,7 @@
 #include "HepMC3Wrap.h"
 #include "jlcxx/jlcxx.hpp"
 #include "jlcxx/functions.hpp"
+#include "jlcxx/stl.hpp"
 
 
 void add_manual_hepmc3_methods(jlcxx::Module& mod) {
@@ -121,7 +122,18 @@ void add_manual_hepmc3_methods(jlcxx::Module& mod) {
     // Run info support
     mod.method("create_gen_run_info", &create_gen_run_info);
     mod.method("set_event_run_info", &set_event_run_info);
-    mod.method("set_weight_names", &set_weight_names);
+    mod.method("get_event_run_info", &get_event_run_info);
+    mod.method("clear_run_info_weight_names", &clear_run_info_weight_names);
+    mod.method("add_run_info_weight_name", &add_run_info_weight_name);
+    mod.method("get_run_info_weight_names_size", &get_run_info_weight_names_size);
+    mod.method("get_run_info_weight_name", &get_run_info_weight_name);
+    mod.method("run_info_has_weight", &run_info_has_weight);
+    mod.method("run_info_weight_index", &run_info_weight_index);
+    mod.method("add_run_info_tool", &add_run_info_tool);
+    mod.method("get_run_info_tools_size", &get_run_info_tools_size);
+    mod.method("get_run_info_tool_name", &get_run_info_tool_name);
+    mod.method("get_run_info_tool_version", &get_run_info_tool_version);
+    mod.method("get_run_info_tool_description", &get_run_info_tool_description);
 
 
     // Add vertex equality

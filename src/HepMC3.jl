@@ -6,11 +6,21 @@ using Libdl
 import Base: length, getindex, iterate, close
 
 # Load both the manual wrapper AND the generated bindings
+const pkgdir = normpath(joinpath(@__DIR__, ".."))
 const gendir = normpath(joinpath(@__DIR__, "../gen"))
 const libpath = joinpath(gendir, "build/lib", "libHepMC3Wrap.$(Libdl.dlext)")
 
 if !isfile(libpath)
-    error("Wrapper library not found. Please build the package first.")
+    error("""
+    Wrapper library not found at:
+      $libpath
+
+    Build the wrapper before loading HepMC3:
+      julia --project=$pkgdir -e 'using Pkg; Pkg.build()'
+
+    For wrapper development, run the lower-level build script directly:
+      julia --project=$pkgdir $gendir/build.jl
+    """)
 end
 
 # Load the wrapper module - this includes BOTH manual and generated code

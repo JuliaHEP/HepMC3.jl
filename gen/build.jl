@@ -1,5 +1,3 @@
-using Pkg
-Pkg.instantiate()
 using CxxWrap
 using HepMC3_jll
 using WrapIt: wrapit

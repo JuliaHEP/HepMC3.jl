@@ -54,6 +54,20 @@ set_event_weights!(event, [1.0, 0.95, 1.05])
 weights = get_event_weights(event)
 ```
 
+### Run Information
+
+Run-level metadata can store weight names and generator tool information:
+
+```julia
+run_info = create_run_info()
+set_weight_names!(run_info, ["nominal", "scale_up", "scale_down"])
+add_tool_info!(run_info, "Pythia8", "8.306", "hard process generator")
+set_run_info!(event, run_info)
+
+names = get_weight_names(event)
+tools = get_tool_infos(event)
+```
+
 ## Event Structure
 
 ### Accessing Particles and Vertices
@@ -181,6 +195,15 @@ event_number
 set_units!
 set_event_weights!
 get_event_weights
+create_run_info
+set_run_info!
+get_run_info
+set_weight_names!
+get_weight_names
+has_weight
+weight_index
+add_tool_info!
+get_tool_infos
 particles_size
 vertices_size
 get_particle_at

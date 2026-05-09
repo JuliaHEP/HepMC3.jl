@@ -7,9 +7,11 @@
 #include "HepMC3/GenCrossSection.h"
 #include "HepMC3/GenPdfInfo.h" 
 #include "HepMC3/GenHeavyIon.h"
+#include "HepMC3/GenRunInfo.h"
 #include "HepMC3/Attribute.h"
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 using namespace HepMC3;
 
@@ -500,13 +502,86 @@ void set_event_run_info(void* event, void* run_info) {
     e->set_run_info(*ri);
 }
 
-void set_weight_names(void* run_info, const char** names, int n_names) {
-    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
-    std::vector<std::string> weight_names;
-    for (int i = 0; i < n_names; ++i) {
-        weight_names.push_back(std::string(names[i]));
+void* get_event_run_info(void* event) {
+    auto e = static_cast<HepMC3::GenEvent*>(event);
+    auto ri = e->run_info();
+    if (ri) {
+        return new std::shared_ptr<HepMC3::GenRunInfo>(ri);
     }
+    return nullptr;
+}
+
+void clear_run_info_weight_names(void* run_info) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    (*ri)->set_weight_names({});
+}
+
+void add_run_info_weight_name(void* run_info, const char* name) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    std::vector<std::string> weight_names = (*ri)->weight_names();
+    weight_names.push_back(std::string(name));
     (*ri)->set_weight_names(weight_names);
+}
+
+int get_run_info_weight_names_size(void* run_info) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    return (*ri)->weight_names().size();
+}
+
+std::string get_run_info_weight_name(void* run_info, int index) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    const auto& names = (*ri)->weight_names();
+    if (index < 0 || index >= static_cast<int>(names.size())) {
+        throw std::out_of_range("run info weight-name index out of range");
+    }
+    return names[index];
+}
+
+bool run_info_has_weight(void* run_info, const char* name) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    return (*ri)->has_weight(std::string(name));
+}
+
+int run_info_weight_index(void* run_info, const char* name) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    return (*ri)->weight_index(std::string(name));
+}
+
+void add_run_info_tool(void* run_info, const char* name, const char* version, const char* description) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    (*ri)->tools().push_back({std::string(name), std::string(version), std::string(description)});
+}
+
+int get_run_info_tools_size(void* run_info) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    return (*ri)->tools().size();
+}
+
+std::string get_run_info_tool_name(void* run_info, int index) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    const auto& tools = (*ri)->tools();
+    if (index < 0 || index >= static_cast<int>(tools.size())) {
+        throw std::out_of_range("run info tool index out of range");
+    }
+    return tools[index].name;
+}
+
+std::string get_run_info_tool_version(void* run_info, int index) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    const auto& tools = (*ri)->tools();
+    if (index < 0 || index >= static_cast<int>(tools.size())) {
+        throw std::out_of_range("run info tool index out of range");
+    }
+    return tools[index].version;
+}
+
+std::string get_run_info_tool_description(void* run_info, int index) {
+    auto ri = static_cast<std::shared_ptr<HepMC3::GenRunInfo>*>(run_info);
+    const auto& tools = (*ri)->tools();
+    if (index < 0 || index >= static_cast<int>(tools.size())) {
+        throw std::out_of_range("run info tool index out of range");
+    }
+    return tools[index].description;
 }
 
 

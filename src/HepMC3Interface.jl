@@ -724,7 +724,9 @@ end
 
 
 
-export create_run_info, add_tool_info!, set_weight_names!
+export create_run_info, set_run_info!, get_run_info
+export add_tool_info!, get_tool_infos, set_weight_names!, get_weight_names
+export has_weight, weight_index
 
 """
     create_run_info()
@@ -735,24 +737,114 @@ function create_run_info()
 end
 
 """
+    set_run_info!(event, run_info)
+
+Attach a `GenRunInfo` object to an event.
+"""
+function set_run_info!(event::GenEvent, run_info)
+    set_event_run_info(event.cpp_object, run_info)
+    return event
+end
+
+"""
+    get_run_info(event)
+
+Return the `GenRunInfo` pointer attached to an event, or `C_NULL` if none is set.
+"""
+function get_run_info(event::GenEvent)
+    return get_event_run_info(event.cpp_object)
+end
+
+"""
     set_weight_names!(run_info, names)
 Set the weight names for a RunInfo object.
 """
-function set_weight_names!(run_info, names::Vector{String})
-    c_names = [pointer(name) for name in names]
-    set_weight_names(run_info, c_names, length(names))
+function set_weight_names!(run_info, names::AbstractVector{<:AbstractString})
+    clear_run_info_weight_names(run_info)
+    for name in names
+        add_run_info_weight_name(run_info, String(name))
+    end
+    return run_info
+end
+
+"""
+    get_weight_names(run_info_or_event)
+
+Return the weight names attached to a `GenRunInfo` object or event.
+"""
+function get_weight_names(run_info)
+    n_names = get_run_info_weight_names_size(run_info)
+    return [String(get_run_info_weight_name(run_info, i)) for i in 0:(n_names - 1)]
+end
+
+function get_weight_names(event::GenEvent)
+    run_info = get_run_info(event)
+    return run_info == C_NULL ? String[] : get_weight_names(run_info)
+end
+
+"""
+    has_weight(run_info_or_event, name)
+
+Return whether a named event weight is present in the run information.
+"""
+function has_weight(run_info, name::AbstractString)
+    return run_info_has_weight(run_info, String(name))
+end
+
+function has_weight(event::GenEvent, name::AbstractString)
+    run_info = get_run_info(event)
+    return run_info != C_NULL && has_weight(run_info, name)
+end
+
+"""
+    weight_index(run_info_or_event, name)
+
+Return the zero-based HepMC3 weight index for `name`, or `-1` when absent.
+"""
+function weight_index(run_info, name::AbstractString)
+    return run_info_weight_index(run_info, String(name))
+end
+
+function weight_index(event::GenEvent, name::AbstractString)
+    run_info = get_run_info(event)
+    return run_info == C_NULL ? -1 : weight_index(run_info, name)
 end
 
 """
     add_tool_info!(run_info, name, version, description)
-Add tool information to RunInfo (if you want full pyhepmc compatibility).
-For now, this is a placeholder since ToolInfo might need C++ implementation.
+
+Add generator or processing tool metadata to run information.
 """
-function add_tool_info!(run_info, name::String, version::String, description::String)
-    # For now, just log that tool info was requested
-    println("ToolInfo requested: $name $version - $description")
-    # This could be implemented in C++ later if needed
-    return nothing
+function add_tool_info!(
+    run_info,
+    name::AbstractString,
+    version::AbstractString,
+    description::AbstractString,
+)
+    add_run_info_tool(run_info, String(name), String(version), String(description))
+    return run_info
+end
+
+"""
+    get_tool_infos(run_info_or_event)
+
+Return tool metadata as named tuples with `name`, `version`, and `description`.
+"""
+function get_tool_infos(run_info)
+    n_tools = get_run_info_tools_size(run_info)
+    return [
+        (
+            name = String(get_run_info_tool_name(run_info, i)),
+            version = String(get_run_info_tool_version(run_info, i)),
+            description = String(get_run_info_tool_description(run_info, i)),
+        )
+        for i in 0:(n_tools - 1)
+    ]
+end
+
+function get_tool_infos(event::GenEvent)
+    run_info = get_run_info(event)
+    return run_info == C_NULL ? NamedTuple[] : get_tool_infos(run_info)
 end
 
 

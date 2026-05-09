@@ -2,18 +2,6 @@ using Test
 using HepMC3
 
 
-        println("Event tree structure:")
-        println("                       p7                         ")
-        println(" p1                   /                           ")
-        println("   \\v1__p2      p5---v4                          ")
-        println("         \\_v3_/       \\                         ")
-        println("         /    \\        p8                        ")
-        println("    v2__p4     \\                                 ")
-        println("   /            p6                                ")
-        println(" p3                                               ")
-        println()
-        
-        
 """
 Exact replication of the Python pyhepmc test for compatibility validation.
 Creates the same event structure with identical physics content.
@@ -192,14 +180,11 @@ end
         @test get_generated_mass(p2_data.ptr) ≈ 3.756
         @test p2_data.props.momentum.pz ≈ -7000.0
         
-        # Test the pyhepmc assertion about status codes
-        # Note: In pyhepmc, particles stay in creation order with status == i+1
-        # Your implementation might reorder them, so we test the physics content instead
-        println("Particle order check:")
+        # Particle order can differ after graph insertion, but statuses should remain valid.
         for i in 1:8
             particle_ptr = get_particle_at(evt, i)
             props = get_particle_properties(particle_ptr)
-            println("  Index $i: PDG=$(props.pdg_id), Status=$(props.status)")
+            @test 1 <= props.status <= 8
         end
     end
         
@@ -268,4 +253,3 @@ end
     end
 
 end
-

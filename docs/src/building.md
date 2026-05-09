@@ -1,306 +1,109 @@
 # Building from Source
 
-This guide covers building HepMC3.jl from source, which is necessary for development or when using the latest features not yet available in the package registry.
+This page describes the source build used by contributors and current
+development checkouts.
 
-## Prerequisites
+## Requirements
 
-Before building HepMC3.jl, ensure you have the following installed:
+- Julia 1.10 or newer
+- CMake 3.21 or newer
+- A C++17 compiler
+- zlib development headers
 
-### Required Software
-
-- **Julia**: Version 1.10 or later
-- **CMake**: Version 3.21 or later
-- **C++ Compiler**: C++17 compatible (GCC 9+, Clang 10+, MSVC 2019+)
-- **zlib**: Development headers
-
-### Platform-Specific Installation
-
-#### Ubuntu/Debian
-
-```bash
-sudo apt update
-sudo apt install cmake build-essential zlib1g-dev
-```
-
-#### Arch Linux
-
-```bash
-sudo pacman -S cmake base-devel zlib
-```
-
-#### Fedora/RHEL
-
-```bash
-sudo dnf install cmake gcc-c++ zlib-devel
-```
-
-#### macOS
-
-```bash
-brew install cmake
-```
-
-Xcode Command Line Tools provides the C++ compiler:
+On macOS, install Xcode Command Line Tools and CMake:
 
 ```bash
 xcode-select --install
+brew install cmake
 ```
 
-#### Windows
-
-Install Visual Studio 2019 or later with C++ support, and CMake from https://cmake.org/download/.
-
-## Build Process
-
-### Step 1: Clone the Repository
+On Ubuntu:
 
 ```bash
-git clone https://github.com/your-org/HepMC3.jl.git
+sudo apt-get update
+sudo apt-get install -y build-essential cmake zlib1g-dev
+```
+
+## Standard Build
+
+Clone the repository and build the wrapper:
+
+```bash
+git clone https://github.com/JuliaHEP/HepMC3.jl.git
 cd HepMC3.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build()'
 ```
 
-### Step 2: Install Julia Dependencies
+`Pkg.build()` runs `deps/build.jl`, which invokes `gen/build.jl` and creates the
+shared library in `gen/build/lib/`.
 
-Start Julia with the project environment:
+## Development Build Script
+
+For wrapper development, run the lower-level script directly:
 
 ```bash
-julia --project=.
+julia --project=. gen/build.jl
 ```
 
-Then install dependencies:
+By default this script uses the checked-in WrapIt-generated C++ sources. This
+keeps normal builds reproducible and avoids requiring wrapper regeneration on
+every platform.
 
-```julia
-using Pkg
-Pkg.instantiate()
-Pkg.add("WrapIt")  # Required for generating bindings
-```
+## Regenerating Wrappers
 
-### Step 3: Generate Wrapper Code
-
-The wrapper code is generated using WrapIt, which analyzes HepMC3 headers and produces CxxWrap bindings.
-
-```julia
-cd("gen")
-
-using WrapIt, CxxWrap, HepMC3_jll
-
-# Create the .wit configuration file from template
-cxxwrap_prefix = CxxWrap.prefix_path()
-hepmc3_prefix = HepMC3_jll.artifact_dir
-julia_prefix = dirname(Sys.BINDIR)
-
-wit = joinpath(@__DIR__, "HepMC3.wit")
-witin = joinpath(@__DIR__, "HepMC3.wit.in")
-open(wit, "w") do f
-    for l in eachline(witin)
-        println(f, replace(l,
-            "@HepMC3_INCLUDE_DIR@" => "$hepmc3_prefix/include",
-            "@Julia_INCLUDE_DIR@" => "$julia_prefix/include/julia",
-            "@JlCxx_INCLUDE_DIR@" => "$cxxwrap_prefix/include",
-            "@CxxWrap_VERSION@" => "$(pkgversion(CxxWrap))"))
-    end
-end
-
-# Run wrapit to generate wrapper code
-run(`$(WrapIt.wrapit_path) $wit --force -v 1`)
-```
-
-This generates the following files in `gen/cpp/`:
-- `jlHepMC3.cxx` - Main wrapper implementation
-- `jlHepMC3.h` - Header file
-- Various `Jl*.cxx` files for individual types
-
-### Step 4: Apply Patches
-
-After generating the wrapper code, apply patches to include the manual wrapper implementations:
+Regenerate wrappers only when intentionally changing the wrapped C++ API:
 
 ```bash
-# Navigate to project root
-cd /path/to/HepMC3.jl
-
-# Add include for manual wrappers
-sed -i '/#include "Wrapper.h"/a #include "HepMC3Wrap.h"' gen/cpp/jlHepMC3.cxx
-
-# Add call to manual wrapper registration
-sed -i '/for(const auto& w: wrappers) w->add_methods();/a \  add_manual_hepmc3_methods(jlModule);' gen/cpp/jlHepMC3.cxx
+julia --project=. gen/build.jl --generate
 ```
 
-On macOS, use `sed -i ''` instead of `sed -i`:
+or, to preserve unchanged generated files where possible:
 
 ```bash
-sed -i '' '/#include "Wrapper.h"/a\
-#include "HepMC3Wrap.h"' gen/cpp/jlHepMC3.cxx
-
-sed -i '' '/for(const auto& w: wrappers) w->add_methods();/a\
-  add_manual_hepmc3_methods(jlModule);' gen/cpp/jlHepMC3.cxx
+julia --project=. gen/build.jl --update
 ```
 
-### Step 5: Build the Binary Library
+After regeneration, inspect all generated changes carefully. The generated
+entrypoint must still include the manual wrapper registration, and
+`gen/cpp/jlHepMC3.h` must include the HepMC3 headers required by the generated
+translation units.
 
-Configure and build using CMake:
+## Testing
 
-```julia
-using CxxWrap, HepMC3_jll
-
-builddir = joinpath(@__DIR__, "gen/build")
-sourcedir = joinpath(@__DIR__, "gen")
-mkpath(builddir)
-
-cxxwrap_prefix = CxxWrap.prefix_path()
-hepmc3_prefix = HepMC3_jll.artifact_dir
-
-cd(builddir)
-
-# Configure
-run(`cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=17 -DCMAKE_PREFIX_PATH=$cxxwrap_prefix\;$hepmc3_prefix $sourcedir`)
-
-# Build (use number of CPU cores)
-run(`cmake --build . --config Release --parallel 8`)
-```
-
-The built library will be located at:
-- Linux: `gen/build/lib/libHepMC3Wrap.so`
-- macOS: `gen/build/lib/libHepMC3Wrap.dylib`
-- Windows: `gen/build/lib/HepMC3Wrap.dll`
-
-### Step 6: Verify the Build
-
-```julia
-cd("/path/to/HepMC3.jl")
-using HepMC3
-
-# Check that the module loads
-println("HepMC3 loaded successfully!")
-println("Exported symbols: ", length(names(HepMC3)))
-
-# Run tests
-using Pkg
-Pkg.test()
-```
-
-## Build Configuration Options
-
-### CMake Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `CMAKE_BUILD_TYPE` | Release | Build type (Debug, Release, RelWithDebInfo) |
-| `CMAKE_CXX_STANDARD` | 17 | C++ standard version |
-| `CMAKE_PREFIX_PATH` | - | Paths to CxxWrap and HepMC3 |
-
-### Debug Build
-
-For debugging, use:
+Run the full test suite:
 
 ```bash
-cmake -DCMAKE_BUILD_TYPE=Debug ...
+julia --project=. -e 'using Pkg; Pkg.test()'
 ```
 
-## Troubleshooting
+Run the main example:
 
-### CxxWrap Version Mismatch
-
-If you encounter errors like "invalid subtyping in definition of StdString", update CxxWrap:
-
-```julia
-using Pkg
-Pkg.rm("CxxWrap")
+```bash
+julia --project=. examples/basic_tree_julia.jl
 ```
 
-Edit `Project.toml` to allow CxxWrap 0.17:
+## Common Issues
 
-```toml
-[compat]
-CxxWrap = "0.17"
+### Wrapper library not found
+
+If `using HepMC3` reports that `libHepMC3Wrap` is missing, run:
+
+```bash
+julia --project=. -e 'using Pkg; Pkg.build()'
 ```
 
-Then reinstall:
+### CMake cannot find dependencies
 
-```julia
-Pkg.add("CxxWrap")
+The build uses `CxxWrap.prefix_path()` and `HepMC3_jll.artifact_dir` to locate
+CxxWrap and HepMC3. If configuration fails, verify that the Julia environment is
+instantiated:
+
+```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
 ```
 
-### Missing wrapit Executable
+### WrapIt crashes or produces invalid output
 
-If `wrapit` is not in your PATH, use the full path from WrapIt.jl:
-
-```julia
-using WrapIt
-println(WrapIt.wrapit_path)
-# Use this path directly in the run command
-```
-
-### Library Not Found
-
-If you see "Wrapper library not found" errors:
-
-1. Verify the library was built:
-   ```bash
-   ls -la gen/build/lib/
-   ```
-
-2. Check the library path in `src/HepMC3.jl` matches the actual location.
-
-3. Rebuild if necessary:
-   ```bash
-   cd gen/build
-   cmake --build . --config Release
-   ```
-
-### CMake Cannot Find Dependencies
-
-Ensure the `CMAKE_PREFIX_PATH` includes both CxxWrap and HepMC3 directories:
-
-```julia
-println("CxxWrap prefix: ", CxxWrap.prefix_path())
-println("HepMC3 prefix: ", HepMC3_jll.artifact_dir)
-```
-
-### Precompilation Disabled Warning
-
-HepMC3.jl uses `__precompile__(false)` because it loads a dynamically generated library at runtime. This warning is expected and does not indicate a problem.
-
-## Updating Bindings
-
-When the HepMC3 version changes or you need to regenerate bindings:
-
-1. Delete the generated files:
-   ```bash
-   rm -rf gen/build gen/cpp/jl*.cxx gen/cpp/jl*.h gen/jl/
-   ```
-
-2. Regenerate by following Steps 3-5 above.
-
-## Contributing
-
-When contributing changes to the wrapper:
-
-1. Modify files in `gen/cpp/` for manual wrapper implementations
-2. Update `HepMC3Wrap.cxx` and `HepMC3WrapImpl.cpp` for custom bindings
-3. Regenerate and rebuild as described above
-4. Run tests to verify changes:
-   ```julia
-   using Pkg
-   Pkg.test()
-   ```
-
-## Directory Structure
-
-```
-HepMC3.jl/
-├── gen/
-│   ├── build/          # CMake build directory
-│   │   └── lib/        # Built library
-│   ├── cpp/            # C++ wrapper source files
-│   │   ├── HepMC3Wrap.cxx      # Manual wrapper definitions
-│   │   ├── HepMC3WrapImpl.cpp  # Implementation
-│   │   └── jlHepMC3.cxx        # Generated wrapper (after wrapit)
-│   ├── build.jl        # Build script
-│   ├── CMakeLists.txt  # CMake configuration
-│   └── HepMC3.wit.in   # WrapIt configuration template
-├── src/
-│   ├── HepMC3.jl       # Main module
-│   └── HepMC3Interface.jl  # Julia interface functions
-└── test/
-    └── runtests.jl     # Test suite
-```
+Normal builds do not need WrapIt regeneration. If regeneration fails, keep the
+checked-in generated sources and investigate the `.wit` configuration and
+platform-specific libclang behavior separately.

@@ -34,10 +34,12 @@
         set_units!(event, :GeV, :mm)
         
         # Add particles with known properties
+        p0 = make_shared_particle(0.0, 0.0, 100.0, 100.0, 22, 2)
         p1 = make_shared_particle(10.0, 20.0, 30.0, 40.0, 11, 1)  # electron
         p2 = make_shared_particle(-5.0, -10.0, -15.0, 20.0, -11, 1) # positron
         
         vertex = make_shared_vertex()
+        connect_particle_in(vertex, p0)
         connect_particle_out(vertex, p1)
         connect_particle_out(vertex, p2)
         attach_vertex_to_event(event, vertex)
@@ -60,7 +62,7 @@
         HepMC3.reader_close(reader)
         
         # Verify read event properties
-        @test particles_size(read_event) == 2
+        @test particles_size(read_event) == 3
         @test vertices_size(read_event) == 1
         @test event_number(read_event) == 123
         
@@ -108,13 +110,4 @@
         rm(filename)
     end
     
-    @testset "Error Handling" begin
-        # Test reading non-existent file
-        reader = HepMC3.create_reader_ascii("nonexistent_file.hepmc3")
-        # This should handle gracefully (might return null or fail gracefully)
-        
-        # Test writing to invalid path
-        writer = HepMC3.create_writer_ascii("/invalid/path/file.hepmc3")
-        # Should handle gracefully
-    end
 end

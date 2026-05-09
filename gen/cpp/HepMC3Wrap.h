@@ -128,7 +128,14 @@ extern "C" {
     // Run info support
     void* create_gen_run_info();
     void set_event_run_info(void* event, void* run_info);
-    void set_weight_names(void* run_info, const char** names, int n_names);
+    void* get_event_run_info(void* event);
+    void clear_run_info_weight_names(void* run_info);
+    void add_run_info_weight_name(void* run_info, const char* name);
+    int get_run_info_weight_names_size(void* run_info);
+    bool run_info_has_weight(void* run_info, const char* name);
+    int run_info_weight_index(void* run_info, const char* name);
+    void add_run_info_tool(void* run_info, const char* name, const char* version, const char* description);
+    int get_run_info_tools_size(void* run_info);
 
     // Vertex equality and safe navigation functions
     bool vertices_equal(void* v1, void* v2);
@@ -152,5 +159,10 @@ extern "C" {
     void* get_vertex_at_raw(void* event, int index);
 
 }
+
+std::string get_run_info_weight_name(void* run_info, int index);
+std::string get_run_info_tool_name(void* run_info, int index);
+std::string get_run_info_tool_version(void* run_info, int index);
+std::string get_run_info_tool_description(void* run_info, int index);
 
 #endif

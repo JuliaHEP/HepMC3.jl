@@ -13,7 +13,9 @@ const TEST_FILES = [
     "test_attributes.jl",
     "test_manual_wrappers.jl",
     "test_physics_examples.jl",
-    "test_navigation.jl"
+    "test_navigation.jl",
+    "test_run_info.jl",
+    "test_build_configuration.jl"
 ]
 
 @testset "HepMC3.jl Complete Test Suite" begin

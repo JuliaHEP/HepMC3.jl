@@ -117,11 +117,12 @@ Include run-level information in the output:
 ```julia
 # Create run info
 run_info = create_run_info()
-add_tool_info!(run_info, "generator", "Pythia8", "8.306")
+set_weight_names!(run_info, ["nominal"])
+add_tool_info!(run_info, "Pythia8", "8.306", "hard process generator")
 
 # Create event with run info
 event = create_event(1)
-set_run_info(event, run_info)
+set_run_info!(event, run_info)
 
 # Write
 writer = create_writer_ascii("output.hepmc3")
