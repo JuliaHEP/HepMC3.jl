@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Examples · HepMC3.jl</title><meta name="title" content="Examples · HepMC3.jl"/><meta property="og:title" content="Examples · HepMC3.jl"/><meta property="twitter:title" content="Examples · HepMC3.jl"/><meta name="description" content="Documentation for HepMC3.jl."/><meta property="og:description" content="Documentation for HepMC3.jl."/><meta property="twitter:description" content="Documentation for HepMC3.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="HepMC3.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">HepMC3.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../getting_started/">Getting Started</a></li><li><a class="tocitem" href="../building/">Building from Source</a></li><li><a class="tocitem" href="../events/">Events</a></li><li><a class="tocitem" href="../particles/">Particles</a></li><li><a class="tocitem" href="../vertices/">Vertices</a></li><li><a class="tocitem" href="../fourvector/">Four-Vectors</a></li><li><a class="tocitem" href="../file_io/">File I/O</a></li><li><a class="tocitem" href="../attributes/">Attributes</a></li><li><a class="tocitem" href="../units/">Units</a></li><li><a class="tocitem" href="../navigation/">Navigation</a></li><li class="is-active"><a class="tocitem" href>Examples</a><ul class="internal"><li><a class="tocitem" href="#Basic-Event-Creation"><span>Basic Event Creation</span></a></li><li><a class="tocitem" href="#Decay-Chain"><span>Decay Chain</span></a></li><li><a class="tocitem" href="#Complete-Event-with-Metadata"><span>Complete Event with Metadata</span></a></li><li><a class="tocitem" href="#File-I/O-Round-Trip"><span>File I/O Round Trip</span></a></li><li><a class="tocitem" href="#Processing-Event-Files"><span>Processing Event Files</span></a></li><li><a class="tocitem" href="#Complex-Decay-Chain"><span>Complex Decay Chain</span></a></li><li><a class="tocitem" href="#Particle-Analysis"><span>Particle Analysis</span></a></li><li><a class="tocitem" href="#Event-Building-Pattern"><span>Event Building Pattern</span></a></li><li><a class="tocitem" href="#JetReconstruction-Integration"><span>JetReconstruction Integration</span></a></li><li><a class="tocitem" href="#See-Also"><span>See Also</span></a></li></ul></li><li><a class="tocitem" href="../contributing/">Contributing</a></li><li><span class="tocitem">Reference Docs</span><ul><li><a class="tocitem" href="../lib/public/">Public API</a></li><li><a class="tocitem" href="../lib/internal/">Internal API</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaHEP/HepMC3.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaHEP/HepMC3.jl/blob/main/docs/src/examples.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h1><p>This page contains complete, working examples demonstrating various features of HepMC3.jl.</p><h2 id="Basic-Event-Creation"><a class="docs-heading-anchor" href="#Basic-Event-Creation">Basic Event Creation</a><a id="Basic-Event-Creation-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Event-Creation" title="Permalink"></a></h2><p>Create a simple event with one particle:</p><pre><code class="language-julia hljs">using HepMC3
+
+# Create event
+event = create_event(1)
+set_units!(event, :GeV, :mm)
+
+# Create a proton
+proton = make_shared_particle(0.0, 0.0, 7000.0, 7000.0, 2212, 3)
+
+# Create vertex
+vertex = make_shared_vertex()
+connect_particle_out(vertex, proton)
+attach_vertex_to_event(event, vertex)
+
+# Check event
+println(&quot;Event $(event_number(event)): $(particles_size(event)) particles&quot;)</code></pre><h2 id="Decay-Chain"><a class="docs-heading-anchor" href="#Decay-Chain">Decay Chain</a><a id="Decay-Chain-1"></a><a class="docs-heading-anchor-permalink" href="#Decay-Chain" title="Permalink"></a></h2><p>Create a particle decay chain:</p><pre><code class="language-julia hljs">using HepMC3
+
+event = create_event(1)
+set_units!(event, :GeV, :mm)
+
+# Create particles: Z boson decaying to electron-positron pair
+z_boson = make_shared_particle(10.0, 20.0, 100.0, 200.0, 23, 2)
+electron = make_shared_particle(5.0, 10.0, 50.0, 60.0, 11, 1)
+positron = make_shared_particle(5.0, 10.0, 50.0, 60.0, -11, 1)
+
+# Create decay vertex
+decay_vertex = make_shared_vertex()
+connect_particle_in(decay_vertex, z_boson)
+connect_particle_out(decay_vertex, electron)
+connect_particle_out(decay_vertex, positron)
+attach_vertex_to_event(event, decay_vertex)
+
+# Navigate decay chain
+children = get_decay_products(z_boson)
+println(&quot;Z boson decays to $(length(children)) particles&quot;)</code></pre><h2 id="Complete-Event-with-Metadata"><a class="docs-heading-anchor" href="#Complete-Event-with-Metadata">Complete Event with Metadata</a><a id="Complete-Event-with-Metadata-1"></a><a class="docs-heading-anchor-permalink" href="#Complete-Event-with-Metadata" title="Permalink"></a></h2><p>Create an event with PDF info, cross section, and attributes:</p><pre><code class="language-julia hljs">using HepMC3
+
+event = create_event(1)
+set_units!(event, :GeV, :mm)
+
+# Create particles
+p1 = make_shared_particle(0.0, 0.0, 7000.0, 7000.0, 2212, 3)
+p2 = make_shared_particle(0.750, -1.569, 32.191, 32.238, 1, 3)
+
+# Create vertex
+v1 = make_shared_vertex()
+set_vertex_position(v1, 0.0, 0.0, 0.0, 0.0)
+connect_particle_in(v1, p1)
+connect_particle_out(v1, p2)
+attach_vertex_to_event(event, v1)
+
+# Add PDF information
+add_pdf_info!(event, 1, 2, 0.1, 0.2, 100.0, 0.5, 0.6, 1, 2)
+
+# Add cross section
+add_cross_section!(event, 1.2, 0.1)
+
+# Add event weights
+set_event_weights!(event, [1.0, 0.95, 1.05])
+
+# Add particle attributes
+add_particle_attribute!(p1, &quot;is_beam&quot;, 1)
+add_particle_attribute!(p2, &quot;flavor&quot;, 1)
+
+println(&quot;Event created with metadata&quot;)</code></pre><h2 id="File-I/O-Round-Trip"><a class="docs-heading-anchor" href="#File-I/O-Round-Trip">File I/O Round Trip</a><a id="File-I/O-Round-Trip-1"></a><a class="docs-heading-anchor-permalink" href="#File-I/O-Round-Trip" title="Permalink"></a></h2><p>Write an event to file and read it back:</p><pre><code class="language-julia hljs">using HepMC3
+
+# Create event
+event = create_event(42)
+set_units!(event, :GeV, :mm)
+
+p1 = make_shared_particle(0.0, 0.0, 7000.0, 7000.0, 2212, 3)
+p2 = make_shared_particle(10.0, 20.0, 100.0, 150.0, 11, 1)
+
+v1 = make_shared_vertex()
+connect_particle_in(v1, p1)
+connect_particle_out(v1, p2)
+attach_vertex_to_event(event, v1)
+
+# Write to file
+filename = &quot;test_event.hepmc3&quot;
+writer = create_writer_ascii(filename)
+writer_write_event(writer, event.cpp_object)
+writer_close(writer)
+
+# Read back
+events = read_hepmc_file(filename)
+read_event = events[1]
+
+# Verify
+@assert particles_size(read_event) == particles_size(event)
+@assert vertices_size(read_event) == vertices_size(event)
+@assert event_number(read_event) == event_number(event)
+
+println(&quot;Round trip successful!&quot;)
+rm(filename)</code></pre><h2 id="Processing-Event-Files"><a class="docs-heading-anchor" href="#Processing-Event-Files">Processing Event Files</a><a id="Processing-Event-Files-1"></a><a class="docs-heading-anchor-permalink" href="#Processing-Event-Files" title="Permalink"></a></h2><p>Read and analyze multiple events from a file:</p><pre><code class="language-julia hljs">using HepMC3
+
+# Read events
+events = read_hepmc_file(&quot;events.hepmc3&quot;; max_events=100)
+
+println(&quot;Processing $(length(events)) events&quot;)
+
+for (i, event_ptr) in enumerate(events)
+    # Get final state particles
+    final_state = get_final_state_particles(event_ptr)
+
+    # Calculate statistics
+    total_pt = sum(p -&gt; get_particle_properties(p).pt, final_state)
+    n_charged = count(p -&gt; particle_charge(get_particle_properties(p).pdg_id) != 0,
+                      final_state)
+
+    println(&quot;Event $i: $(length(final_state)) final state, &quot; *
+            &quot;total pT = $(round(total_pt, digits=2)) GeV, &quot; *
+            &quot;$n_charged charged particles&quot;)
+end</code></pre><h2 id="Complex-Decay-Chain"><a class="docs-heading-anchor" href="#Complex-Decay-Chain">Complex Decay Chain</a><a id="Complex-Decay-Chain-1"></a><a class="docs-heading-anchor-permalink" href="#Complex-Decay-Chain" title="Permalink"></a></h2><p>Build and traverse a complex decay chain:</p><pre><code class="language-julia hljs">using HepMC3
+
+function build_complex_event()
+    event = create_event(1)
+    set_units!(event, :GeV, :mm)
+
+    # W boson production and decay
+    # p1 + p2 -&gt; W -&gt; e + nu_e
+
+    p1 = make_shared_particle(0.0, 0.0, 7000.0, 7000.0, 2212, 3)  # Proton
+    p2 = make_shared_particle(0.0, 0.0, -7000.0, 7000.0, 2212, 3) # Anti-proton
+
+    # Production vertex
+    v1 = make_shared_vertex()
+    connect_particle_in(v1, p1)
+    connect_particle_in(v1, p2)
+
+    w = make_shared_particle(0.0, 0.0, 0.0, 80.4, -24, 2)  # W- boson
+    connect_particle_out(v1, w)
+    attach_vertex_to_event(event, v1)
+
+    # Decay vertex
+    v2 = make_shared_vertex()
+    connect_particle_in(v2, w)
+
+    e = make_shared_particle(0.0, 0.0, 40.0, 40.0, 11, 1)      # Electron
+    nu = make_shared_particle(0.0, 0.0, -40.0, 40.0, 12, 1)    # Electron neutrino
+
+    connect_particle_out(v2, e)
+    connect_particle_out(v2, nu)
+    attach_vertex_to_event(event, v2)
+
+    return event
+end
+
+event = build_complex_event()
+
+# Traverse decay chain
+w_particle = get_particle_at(event, 3)  # Assuming W is 3rd particle
+decay_tree = traverse_decay_chain(w_particle)
+
+println(&quot;W boson decay chain:&quot;)
+for node in decay_tree
+    props = node.properties
+    println(&quot;  -&gt; PDG=$(props.pdg_id), pT=$(round(props.pt, digits=2)) GeV&quot;)
+end</code></pre><h2 id="Particle-Analysis"><a class="docs-heading-anchor" href="#Particle-Analysis">Particle Analysis</a><a id="Particle-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Particle-Analysis" title="Permalink"></a></h2><p>Analyze particle properties in an event:</p><pre><code class="language-julia hljs">using HepMC3
+
+function analyze_particles(event_ptr)
+    n_particles = particles_size(event_ptr)
+
+    println(&quot;Particle Analysis:&quot;)
+    println(&quot;  Total particles: $n_particles&quot;)
+
+    # Categorize by status
+    final_state = []
+    intermediate = []
+    initial = []
+
+    for i in 1:n_particles
+        particle = get_particle_at(event_ptr, i)
+        props = get_particle_properties(particle)
+
+        if props.status == 1
+            push!(final_state, particle)
+        elseif props.status == 2
+            push!(intermediate, particle)
+        elseif props.status &gt;= 3
+            push!(initial, particle)
+        end
+    end
+
+    println(&quot;  Final state: $(length(final_state))&quot;)
+    println(&quot;  Intermediate: $(length(intermediate))&quot;)
+    println(&quot;  Initial: $(length(initial))&quot;)
+
+    # Analyze final state
+    if !isempty(final_state)
+        pts = [get_particle_properties(p).pt for p in final_state]
+        println(&quot;  Final state pT range: $(minimum(pts)) - $(maximum(pts)) GeV&quot;)
+    end
+end
+
+# Use with events
+events = read_hepmc_file(&quot;events.hepmc3&quot;; max_events=10)
+for event in events
+    analyze_particles(event)
+end</code></pre><h2 id="Event-Building-Pattern"><a class="docs-heading-anchor" href="#Event-Building-Pattern">Event Building Pattern</a><a id="Event-Building-Pattern-1"></a><a class="docs-heading-anchor-permalink" href="#Event-Building-Pattern" title="Permalink"></a></h2><p>A reusable pattern for building events:</p><pre><code class="language-julia hljs">using HepMC3
+
+function build_event_template()
+    event = create_event(1)
+    set_units!(event, :GeV, :mm)
+
+    # Helper function to add particle to vertex
+    function add_particle_to_vertex(vertex, px, py, pz, e, pdg_id, status, is_incoming)
+        particle = make_shared_particle(px, py, pz, e, pdg_id, status)
+        if is_incoming
+            connect_particle_in(vertex, particle)
+        else
+            connect_particle_out(vertex, particle)
+        end
+        return particle
+    end
+
+    # Build event structure
+    v1 = make_shared_vertex()
+    p1 = add_particle_to_vertex(v1, 0.0, 0.0, 7000.0, 7000.0, 2212, 3, true)
+    p2 = add_particle_to_vertex(v1, 10.0, 20.0, 100.0, 150.0, 11, 1, false)
+    attach_vertex_to_event(event, v1)
+
+    return event
+end
+
+event = build_event_template()
+println(&quot;Event built: $(particles_size(event)) particles&quot;)</code></pre><h2 id="JetReconstruction-Integration"><a class="docs-heading-anchor" href="#JetReconstruction-Integration">JetReconstruction Integration</a><a id="JetReconstruction-Integration-1"></a><a class="docs-heading-anchor-permalink" href="#JetReconstruction-Integration" title="Permalink"></a></h2><p>HepMC3.jl can be used with <a href="https://github.com/JuliaHEP/JetReconstruction.jl">JetReconstruction.jl</a> by converting HepMC3 particles to <code>PseudoJet</code> objects. The <code>PseudoJet</code> struct is a generic data structure that can be used for both proton-proton (pp) and electron-positron (e⁺e⁻) events. The difference lies in the jet reconstruction algorithm used:</p><ul><li><strong>For pp events</strong>: Use algorithms like <code>JetAlgorithm.AntiKt</code>, <code>JetAlgorithm.Kt</code>, or <code>JetAlgorithm.CA</code> (Cambridge/Aachen)</li><li><strong>For e⁺e⁻ events</strong>: Use algorithms like <code>JetAlgorithm.Durham</code> or <code>JetAlgorithm.EEKt</code> (generalized e⁺e⁻ kₜ)</li></ul><p>This example demonstrates reading HepMC3 files and converting final state particles to the <code>PseudoJet</code> format:</p><pre><code class="language-julia hljs">using HepMC3, JetReconstruction
+
+&quot;&quot;&quot;
+    read_final_state_particles(filename; max_events=-1)
+Read HepMC3 file and return JetReconstruction-compatible PseudoJet events.
+This function extracts final state particles (status == 1) from HepMC3 events
+and converts them to PseudoJet format for jet reconstruction.
+&quot;&quot;&quot;
+function read_final_state_particles(filename::String; max_events::Int=-1)
+    # Read events using HepMC3 interface (handles compressed files automatically)
+    events = read_hepmc_file_with_compression(filename; max_events=max_events)
+
+    # Convert to PseudoJets for JetReconstruction
+    pseudojet_events = Vector{PseudoJet}[]
+
+    events_processed = 0
+    for (event_idx, event_ptr) in enumerate(events)
+        # Extract final state particles (status == 1)
+        final_state = get_final_state_particles(event_ptr)
+
+        # Skip empty events
+        if isempty(final_state)
+            continue
+        end
+
+        # Convert HepMC3 particles to PseudoJets
+        input_particles = PseudoJet[]
+        particle_index = 1
+
+        for particle in final_state
+            props = get_particle_properties(particle)
+
+            # Create PseudoJet from four-momentum
+            pseudojet = PseudoJet(
+                props.momentum.px,  # px
+                props.momentum.py,  # py
+                props.momentum.pz,  # pz
+                props.momentum.e;   # E
+                cluster_hist_index = particle_index
+            )
+            push!(input_particles, pseudojet)
+            particle_index += 1
+        end
+
+        push!(pseudojet_events, input_particles)
+        events_processed += 1
+
+        # Respect max_events limit
+        if max_events &gt; 0 &amp;&amp; events_processed &gt;= max_events
+            break
+        end
+    end
+
+    @info &quot;Processed $(length(pseudojet_events)) events from $filename&quot;
+    return pseudojet_events
+end
+
+# Example: Read events and perform jet reconstruction
+filename = &quot;events.hepmc3.zst&quot;  # Can be compressed or uncompressed
+
+# Read final state particles
+pseudojet_events = read_final_state_particles(filename; max_events=100)
+
+# Perform jet reconstruction on first event
+if !isempty(pseudojet_events)
+    event_particles = pseudojet_events[1]
+
+    # For pp events: use anti-kT algorithm
+    clusterseq_pp = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.AntiKt,
+                                     R = 0.4)
+    jets_pp = inclusive_jets(clusterseq_pp, ptmin = 5.0)
+
+    # For e⁺e⁻ events: use Durham algorithm (R parameter is ignored)
+    clusterseq_ee = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.Durham)
+    jets_ee = inclusive_jets(clusterseq_ee, ptmin = 5.0)
+
+    println(&quot;Event 1: $(length(event_particles)) particles&quot;)
+    println(&quot;PP jets (anti-kT, R=0.4): $(length(jets_pp)) jets with pT &gt; 5 GeV&quot;)
+    println(&quot;e⁺e⁻ jets (Durham): $(length(jets_ee)) jets with pT &gt; 5 GeV&quot;)
+end</code></pre><h3 id="Complete-Pipeline-Example"><a class="docs-heading-anchor" href="#Complete-Pipeline-Example">Complete Pipeline Example</a><a id="Complete-Pipeline-Example-1"></a><a class="docs-heading-anchor-permalink" href="#Complete-Pipeline-Example" title="Permalink"></a></h3><p>A complete workflow from HepMC3 file to jet analysis. Note that the same <code>PseudoJet</code> conversion works for both pp and e⁺e⁻ events; only the algorithm differs:</p><pre><code class="language-julia hljs">using HepMC3, JetReconstruction
+
+# For pp events
+function analyze_pp_jets_from_hepmc(filename::String; max_events::Int=10, R::Float64=0.4, ptmin::Float64=5.0)
+    pseudojet_events = read_final_state_particles(filename; max_events=max_events)
+
+    println(&quot;Analyzing $(length(pseudojet_events)) pp events&quot;)
+    println(&quot;=&quot; ^ 60)
+
+    for (event_idx, event_particles) in enumerate(pseudojet_events)
+        # Use anti-kT for pp events
+        clusterseq = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.AntiKt,
+                                     R = R)
+        jets = inclusive_jets(clusterseq, ptmin = ptmin)
+
+        println(&quot;Event $event_idx: $(length(jets)) jets (anti-kT, R=$R)&quot;)
+    end
+end
+
+# For e⁺e⁻ events
+function analyze_ee_jets_from_hepmc(filename::String; max_events::Int=10, ptmin::Float64=5.0)
+    pseudojet_events = read_final_state_particles(filename; max_events=max_events)
+
+    println(&quot;Analyzing $(length(pseudojet_events)) e⁺e⁻ events&quot;)
+    println(&quot;=&quot; ^ 60)
+
+    for (event_idx, event_particles) in enumerate(pseudojet_events)
+        # Use Durham algorithm for e⁺e⁻ events (R parameter is ignored)
+        clusterseq = jet_reconstruct(event_particles;
+                                     algorithm = JetAlgorithm.Durham)
+        jets = inclusive_jets(clusterseq, ptmin = ptmin)
+
+        println(&quot;Event $event_idx: $(length(jets)) jets (Durham)&quot;)
+    end
+end
+
+# Run analysis
+analyze_pp_jets_from_hepmc(&quot;pp_events.hepmc3.zst&quot;; max_events=10, R=0.4, ptmin=5.0)
+analyze_ee_jets_from_hepmc(&quot;ee_events.hepmc3.zst&quot;; max_events=10, ptmin=5.0)</code></pre><h3 id="Key-Points"><a class="docs-heading-anchor" href="#Key-Points">Key Points</a><a id="Key-Points-1"></a><a class="docs-heading-anchor-permalink" href="#Key-Points" title="Permalink"></a></h3><ol><li><p><strong>Final State Extraction</strong>: Use <code>get_final_state_particles()</code> to extract only stable particles (status == 1) from HepMC3 events.</p></li><li><p><strong>PseudoJet Conversion</strong>: The <code>PseudoJet</code> struct is a generic data structure that works for both pp and e⁺e⁻ events. Convert HepMC3 particle four-momenta to <code>PseudoJet</code> objects using the same conversion function regardless of event type.</p></li><li><p><strong>Algorithm Selection</strong>: The choice of jet reconstruction algorithm depends on the event type:</p><ul><li><strong>pp events</strong>: Use <code>JetAlgorithm.AntiKt</code>, <code>JetAlgorithm.Kt</code>, or <code>JetAlgorithm.CA</code> with an <code>R</code> parameter</li><li><strong>e⁺e⁻ events</strong>: Use <code>JetAlgorithm.Durham</code> or <code>JetAlgorithm.EEKt</code> (the <code>R</code> parameter is ignored for Durham)</li></ul></li><li><p><strong>Compressed Files</strong>: The <code>read_hepmc_file_with_compression()</code> function automatically handles both compressed (<code>.zst</code>) and uncompressed HepMC3 files.</p></li><li><p><strong>Event Processing</strong>: The conversion function processes events one at a time, allowing for efficient memory usage with large files.</p></li></ol><p>This example demonstrates how to convert HepMC3 event data to the <code>PseudoJet</code> format expected by JetReconstruction.jl. The same conversion works for both pp and e⁺e⁻ events; only the jet reconstruction algorithm differs.</p><h2 id="See-Also"><a class="docs-heading-anchor" href="#See-Also">See Also</a><a id="See-Also-1"></a><a class="docs-heading-anchor-permalink" href="#See-Also" title="Permalink"></a></h2><ul><li><a href="../getting_started/#Getting-Started">Getting Started</a> for installation and basics</li><li><a href="../events/#Events">Events</a> for event manipulation</li><li><a href="../particles/#Particles">Particles</a> for particle operations</li><li><a href="@ref">File I/O</a> for reading and writing files</li><li><a href="https://github.com/JuliaHEP/JetReconstruction.jl">JetReconstruction.jl</a> for jet finding algorithms</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../navigation/">« Navigation</a><a class="docs-footer-nextpage" href="../contributing/">Contributing »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Saturday 9 May 2026 21:54">Saturday 9 May 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
